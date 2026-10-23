@@ -128,11 +128,19 @@ async function main() {
     const before = await page.evaluate(() => ({
         listen: !!document.querySelector('.vnra__listen'),
         panelHidden: document.querySelector('.vnra__panel').hasAttribute('hidden'),
-        paragraphs: document.querySelectorAll('[data-vnra-para]').length
+        paragraphs: document.querySelectorAll('[data-vnra-para]').length,
+        hasSeek: !!document.querySelector('.vnra__seek'),
+        hasSkip: !!document.querySelector('.vnra__prev') && !!document.querySelector('.vnra__next'),
+        hasVolume: !!document.querySelector('.vnra__volume'),
+        seekMax: document.querySelector('.vnra__seek') ? document.querySelector('.vnra__seek').max : null
     }));
     results.push(['the listen button is present', before.listen]);
     results.push(['the panel starts closed', before.panelHidden]);
     results.push(['the paragraphs are marked', before.paragraphs === 2]);
+    results.push(['the paragraph slider is present', before.hasSeek]);
+    results.push(['the skip controls are present', before.hasSkip]);
+    results.push(['the volume control is present', before.hasVolume]);
+    results.push(['the slider is bounded by the paragraphs', before.seekMax === '1']);
     console.log('  markup:', JSON.stringify(before));
 
     // Open the panel and load the model. The first run downloads about 64 MB.
@@ -157,35 +165,85 @@ async function main() {
         console.log(`  status was: ${status}`);
     }
 
-    // Play it, and look while it is still going.
+    // Play it.
     await page.click('.vnra__play');
     await page.waitForTimeout(2500);
 
     const playing = await page.evaluate(() => ({
         time: document.querySelector('.vnra__time--current').textContent,
-        bar: document.querySelector('.vnra__bar-fill').style.width,
+        progress: document.querySelector('.vnra__seek').style.getPropertyValue('--vnra-progress'),
+        value: document.querySelector('.vnra__seek').value,
+        count: document.querySelector('.vnra__seek-count').textContent,
         reading: document.querySelectorAll('.vnra-para--reading').length,
-        hasReader: !!document.querySelector('[data-vnra-player]').vnraReader
+        state: document.querySelector('[data-vnra-player]').dataset.playing,
+        pauseIcon: getComputedStyle(document.querySelector('.vnra__icon-pause')).display
     }));
     results.push(['the clock advances', playing.time !== '0:00']);
-    results.push(['the progress bar moves', parseFloat(playing.bar || '0') > 0]);
+    results.push(['the slider fills', parseFloat(playing.progress || '0') > 0]);
+    results.push(['the paragraph count is shown', /Paragraph 1 of 2/.test(playing.count)]);
     results.push(['a paragraph is marked as being read', playing.reading === 1]);
+    results.push(['the player reports that it is playing', playing.state === 'true']);
+    results.push(['the button shows a pause icon', playing.pauseIcon !== 'none']);
     console.log('  playback:', JSON.stringify(playing));
 
+    // Pause and resume.
+    await page.click('.vnra__play');
+    await page.waitForTimeout(400);
+    const paused = await page.evaluate(() => ({
+        state: document.querySelector('[data-vnra-player]').dataset.playing,
+        status: document.querySelector('.vnra__status').textContent
+    }));
+    results.push(['pausing updates the state', paused.state === 'false']);
+    results.push(['pausing says so', /paused/i.test(paused.status)]);
+
+    await page.click('.vnra__play');
+    await page.waitForTimeout(600);
+    const resumed = await page.evaluate(() => document.querySelector('[data-vnra-player]').dataset.playing);
+    results.push(['resuming updates the state', resumed === 'true']);
+
+    // Skip forward a paragraph.
+    await page.click('.vnra__next');
+    await page.waitForTimeout(2500);
+    const skipped = await page.evaluate(() => ({
+        reading: document.querySelectorAll('.vnra-para--reading').length,
+        value: document.querySelector('.vnra__seek').value,
+        count: document.querySelector('.vnra__seek-count').textContent
+    }));
+    results.push(['next moves to the second paragraph', skipped.reading === 1 && skipped.value === '1']);
+    results.push(['the slider follows', /Paragraph 2 of 2/.test(skipped.count)]);
+    console.log('  after next:', JSON.stringify(skipped));
+
+    // Volume.
+    await page.evaluate(() => {
+        const input = document.querySelector('.vnra__volume');
+        input.value = '0.4';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const volume = await page.evaluate(() => document.querySelector('.vnra__volume').value);
+    results.push(['the volume control takes a value', volume === '0.4']);
+
     // Let it finish, and check it settles.
-    await page.waitForTimeout(6000);
+    await page.waitForTimeout(8000);
     const finished = await page.evaluate(() => ({
         time: document.querySelector('.vnra__time--current').textContent,
-        duration: document.querySelector('.vnra__time--duration').textContent
+        duration: document.querySelector('.vnra__time--duration').textContent,
+        state: document.querySelector('[data-vnra-player]').dataset.playing
     }));
     results.push(['the duration is shown when it ends', finished.duration !== '0:00']);
+    results.push(['it stops when it is done', finished.state === 'false']);
     console.log('  finished:', JSON.stringify(finished));
 
     // Stop it.
     await page.click('.vnra__stop');
     await page.waitForTimeout(500);
-    const stopped = await page.textContent('.vnra__time--current');
-    results.push(['stop resets the clock', stopped === '0:00']);
+    const stopped = await page.evaluate(() => ({
+        time: document.querySelector('.vnra__time--current').textContent,
+        value: document.querySelector('.vnra__seek').value,
+        reading: document.querySelectorAll('.vnra-para--reading').length
+    }));
+    results.push(['stop resets the clock', stopped.time === '0:00']);
+    results.push(['stop resets the slider', stopped.value === '0']);
+    results.push(['stop clears the highlight', stopped.reading === 0]);
 
     console.log('');
     let failed = 0;

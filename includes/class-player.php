@@ -29,6 +29,22 @@ final class VoxNemesis_Read_Aloud_Player {
 	private static $instance = 0;
 
 	/**
+	 * Whether the player has already been placed on this request.
+	 *
+	 * @var bool
+	 */
+	private $placed = false;
+
+	/**
+	 * Forget that a player was placed, so another one can be.
+	 *
+	 * @return void
+	 */
+	public function reset() {
+		$this->placed = false;
+	}
+
+	/**
 	 * Constructor.
 	 *
 	 * @param VoxNemesis_Read_Aloud_Settings $settings The settings.
@@ -38,10 +54,11 @@ final class VoxNemesis_Read_Aloud_Player {
 	}
 
 	/**
-	 * Add the player to the content, and mark the paragraphs it reads.
+	 * Wrap the paragraphs so the reader knows what to speak, and add the player.
 	 *
-	 * The paragraphs are taken from the final HTML, in the same pass that marks them, so the
-	 * text the reader speaks and the paragraphs in the page can never drift apart.
+	 * The paragraphs are not copied into the markup. The reader reads them from the page
+	 * itself, so the text it speaks and the text on the screen cannot drift apart, and a
+	 * player placed by shortcode works exactly like an inserted one.
 	 *
 	 * @param string $content The post content.
 	 * @return string
@@ -54,11 +71,54 @@ final class VoxNemesis_Read_Aloud_Player {
 			return $content;
 		}
 
-		$paragraphs = array();
+		$post_type = get_post_type();
+		if ( $post_type && ! $this->settings->applies_to( $post_type ) ) {
+			return $content;
+		}
+
+		$marked = $this->mark_paragraphs( $content );
+
+		if ( 'shortcode' === $this->settings->position() ) {
+			return $marked;
+		}
+		if ( $this->placed ) {
+			return $marked;
+		}
+
+		$player = $this->markup( 'floating' === $this->settings->position() ? 'floating' : 'inline' );
+
+		if ( 'before_content' === $this->settings->position() ) {
+			return $player . $marked;
+		}
+
+		return $marked . $player;
+	}
+
+	/**
+	 * The shortcode: place the player wherever the author asks for it.
+	 *
+	 * @return string
+	 */
+	public function shortcode() {
+		if ( ! $this->settings->enabled() || $this->placed ) {
+			return '';
+		}
+
+		return $this->markup( 'inline' );
+	}
+
+	/**
+	 * Add the paragraph markers.
+	 *
+	 * @param string $content The content.
+	 * @return string
+	 */
+	private function mark_paragraphs( $content ) {
+		$index = 0;
 
 		$marked = preg_replace_callback(
 			'/<p\b([^>]*)>(.*?)<\/p>/is',
-			function ( $matches ) use ( &$paragraphs ) {
+			function ( $matches ) use ( &$index ) {
 				$text = $this->paragraph_text( $matches[2] );
 				if ( '' === $text ) {
 					return $matches[0];
@@ -66,33 +126,21 @@ final class VoxNemesis_Read_Aloud_Player {
 
 				$attrs = $matches[1];
 				if ( false === strpos( $attrs, 'data-vnra-para' ) ) {
-					$attrs .= sprintf( ' data-vnra-para="%d"', count( $paragraphs ) );
+					$attrs .= sprintf( ' data-vnra-para="%d"', $index );
 				}
 
-				$paragraphs[] = $text;
+				$index++;
 
 				return '<p' . $attrs . '>' . $matches[2] . '</p>';
 			},
 			$content
 		);
 
-		if ( null === $marked ) {
-			return $content;
-		}
-
-		if ( empty( $paragraphs ) ) {
-			return $marked;
-		}
-
-		if ( 'floating' === $this->settings->position() ) {
-			return $marked . $this->markup( $paragraphs, 'floating' );
-		}
-
-		return $marked . $this->markup( $paragraphs, 'inline' );
+		return null === $marked ? $content : $marked;
 	}
 
 	/**
-	 * The plain text of a paragraph.
+	 * The plain text of a paragraph, to decide whether it is worth speaking.
 	 *
 	 * @param string $html The paragraph's inner HTML.
 	 * @return string
@@ -108,11 +156,12 @@ final class VoxNemesis_Read_Aloud_Player {
 	/**
 	 * The player's markup.
 	 *
-	 * @param array  $paragraphs The paragraphs to read.
-	 * @param string $variant   Either 'inline' or 'floating'.
+	 * @param string $variant Either 'inline' or 'floating'.
 	 * @return string
 	 */
-	private function markup( $paragraphs, $variant = 'inline' ) {
+	private function markup( $variant = 'inline' ) {
+		$this->placed = true;
+
 		self::$instance++;
 		$id = 'vnra-' . self::$instance;
 
@@ -122,6 +171,7 @@ final class VoxNemesis_Read_Aloud_Player {
 			class="vnra vnra--<?php echo esc_attr( $variant ); ?>"
 			id="<?php echo esc_attr( $id ); ?>"
 			data-vnra-player
+			data-playing="false"
 		>
 			<button
 				type="button"
@@ -138,15 +188,45 @@ final class VoxNemesis_Read_Aloud_Player {
 			<div class="vnra__panel" id="<?php echo esc_attr( $id ); ?>-panel" hidden>
 				<p class="vnra__status" role="status" aria-live="polite"></p>
 
-				<div class="vnra__bar" aria-hidden="true"><span class="vnra__bar-fill"></span></div>
+				<?php if ( $this->settings->show_seek() ) : ?>
+					<label class="vnra__seek-wrap">
+						<span class="screen-reader-text"><?php esc_html_e( 'Jump to a paragraph', 'voxnemesis-read-aloud' ); ?></span>
+						<input
+							type="range"
+							class="vnra__seek"
+							min="0"
+							max="0"
+							step="1"
+							value="0"
+							disabled
+							aria-label="<?php esc_attr_e( 'Jump to a paragraph', 'voxnemesis-read-aloud' ); ?>"
+						/>
+						<span class="vnra__seek-count"></span>
+					</label>
+				<?php endif; ?>
 
 				<div class="vnra__controls">
-					<button type="button" class="vnra__play" aria-label="<?php esc_attr_e( 'Play', 'voxnemesis-read-aloud' ); ?>">
-						<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+					<?php if ( $this->settings->show_skip() ) : ?>
+						<button type="button" class="vnra__prev vnra__button" aria-label="<?php esc_attr_e( 'Previous paragraph', 'voxnemesis-read-aloud' ); ?>">
+							<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>
+						</button>
+					<?php endif; ?>
+
+					<button type="button" class="vnra__play vnra__button vnra__button--primary" aria-label="<?php esc_attr_e( 'Play', 'voxnemesis-read-aloud' ); ?>">
+						<svg class="vnra__icon-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+						<svg class="vnra__icon-pause" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>
 					</button>
-					<button type="button" class="vnra__stop" aria-label="<?php esc_attr_e( 'Stop', 'voxnemesis-read-aloud' ); ?>">
-						<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
+
+					<?php if ( $this->settings->show_skip() ) : ?>
+						<button type="button" class="vnra__next vnra__button" aria-label="<?php esc_attr_e( 'Next paragraph', 'voxnemesis-read-aloud' ); ?>">
+							<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>
+						</button>
+					<?php endif; ?>
+
+					<button type="button" class="vnra__stop vnra__button" aria-label="<?php esc_attr_e( 'Stop', 'voxnemesis-read-aloud' ); ?>">
+						<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
 					</button>
+
 					<span class="vnra__time vnra__time--current">0:00</span>
 					<span class="vnra__time vnra__time--duration">0:00</span>
 				</div>
@@ -168,17 +248,15 @@ final class VoxNemesis_Read_Aloud_Player {
 							<output class="vnra__speed-value"><?php echo esc_html( number_format_i18n( $this->settings->speed(), 2 ) ); ?></output>
 						</label>
 					<?php endif; ?>
+
+					<?php if ( $this->settings->show_volume() ) : ?>
+						<label class="vnra__option">
+							<span class="vnra__option-label"><?php esc_html_e( 'Volume', 'voxnemesis-read-aloud' ); ?></span>
+							<input type="range" class="vnra__volume" min="0" max="1" step="0.05" value="1" />
+						</label>
+					<?php endif; ?>
 				</div>
 			</div>
-
-			<script type="application/json" class="vnra__text">
-				<?php
-				echo wp_json_encode(
-					array_values( $paragraphs ),
-					JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE
-				);
-				?>
-			</script>
 		</div>
 		<?php
 

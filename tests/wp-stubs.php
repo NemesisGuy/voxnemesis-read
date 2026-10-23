@@ -25,6 +25,7 @@ $GLOBALS['vnra_options'] = array();
 $GLOBALS['vnra_in_loop'] = true;
 $GLOBALS['vnra_is_singular'] = true;
 $GLOBALS['vnra_is_main_query'] = true;
+$GLOBALS['vnra_post_type'] = 'post';
 
 function add_action( $hook, $callback, $priority = 10, $args = 1 ) {
 	$GLOBALS['vnra_hooks']['actions'][ $hook ][] = $callback;
@@ -81,6 +82,35 @@ function in_the_loop() {
 }
 function is_main_query() {
 	return (bool) $GLOBALS['vnra_is_main_query'];
+}
+
+function get_post_type( $post = null ) {
+	return $GLOBALS['vnra_post_type'];
+}
+
+function add_shortcode( $tag, $callback ) {
+	$GLOBALS['vnra_hooks']['shortcodes'][ $tag ] = $callback;
+}
+
+function do_shortcode_tag( $tag ) {
+	if ( empty( $GLOBALS['vnra_hooks']['shortcodes'][ $tag ] ) ) {
+		return '';
+	}
+	return call_user_func( $GLOBALS['vnra_hooks']['shortcodes'][ $tag ], array(), '', $tag );
+}
+
+function get_post_types( $args = array(), $output = 'names' ) {
+	$types = array();
+
+	foreach ( array( 'post' => 'Post', 'page' => 'Page', 'attachment' => 'Media' ) as $name => $label ) {
+		$type                 = new stdClass();
+		$type->name           = $name;
+		$type->labels         = new stdClass();
+		$type->labels->singular_name = $label;
+		$types[ $name ]       = $type;
+	}
+
+	return $types;
 }
 
 function get_option( $name, $default = false ) {
@@ -205,6 +235,16 @@ function wp_enqueue_style( ...$args ) {
 
 function wp_enqueue_script( ...$args ) {
 	$GLOBALS['vnra_hooks']['scripts'][ $args[0] ] = $args;
+	$GLOBALS['vnra_enqueued'][ $args[0] ]   = true;
+}
+
+function wp_script_is( $handle, $status = 'enqueued' ) {
+	return ! empty( $GLOBALS['vnra_enqueued'][ $handle ] );
+}
+
+function wp_print_inline_script_tag( $data, $attributes = array() ) {
+	$id = isset( $attributes['id'] ) ? ' id="' . esc_attr( $attributes['id'] ) . '"' : '';
+	echo '<script' . $id . '>' . $data . "</script>\n";
 }
 
 function wp_add_inline_script( $handle, $data, $position = 'after' ) {

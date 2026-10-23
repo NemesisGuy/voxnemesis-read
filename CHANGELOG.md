@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.1.1
+Two bugs, both found by running the plugin in real WordPress rather than against the test
+stand-in.
+
+### Fixed
+- **The settings screen fataled the whole site.** `register_settings()` was hooked on
+  `init`, but `add_settings_section()` and friends live in `wp-admin/includes`, which the
+  front end never loads. Every request — front end included — died with a fatal error.
+  The hook is now `admin_init`.
+- **The config never reached the reader.** It was attached with `wp_add_inline_script()`,
+  which WordPress concatenates into the script tag before `script_loader_tag` runs. The
+  filter rebuilt that tag from scratch to add `type="module"`, so the config was thrown
+  away and the runtime fell back to its own defaults. The tag is now edited in place, and
+  the config prints on its own.
+
+### Added
+- Previous and next paragraph.
+- A paragraph slider that also shows position, with a "Paragraph 3 of 12" readout.
+- Volume.
+- Play and pause share a button and show the right icon for the state.
+- Post type selection: posts, pages, or both.
+- "At the top of the post" and "only where I put the shortcode" positions.
+- `[voxnemesis_read_aloud]` shortcode.
+- Per-control toggles on the settings screen.
+
+### Changed
+- The reader takes the paragraphs from the page instead of a JSON copy in the markup, so
+  the text it speaks and the text on screen cannot drift apart.
+- Stop now silences audio that has already been scheduled, not just the generation. It did
+  not, before: pressing stop cancelled the job and left a queue of buffers playing.
+- The paragraph being highlighted is the one that is sounding, not the one being generated.
+  The generation runs ahead, and highlighting the future is worse than no highlight.
+
 ## 0.1.0
 - First release.
 - A listen button on posts and pages, and a small player: play, stop, a progress bar and a clock.

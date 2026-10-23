@@ -8,23 +8,39 @@ No server inference. No API key. No per-request cost. The text never leaves the 
 
 The reader presses **Listen**. The browser fetches the [Phonon](https://huggingface.co/gradium/phonon-31m-en) model once — about 64 MB, cached by the browser afterwards — and runs it in a WebAssembly worker. The audio goes straight into the page's own audio graph.
 
-Your server serves a player, a few assets and, if you host your own model, a static file. It never computes anything and never sees the audio. That is the whole point: a shared host or an old rack is enough.
-
-## Why that matters for your hosting
-
-A typical speech API costs per character or per minute, and the bill scales with your traffic. This plugin's cost to you is the same whether a hundred people read a post or a hundred thousand: a few assets and a cached model.
+Your server serves a player, a few assets and, if you host your own model, a static file. It never computes anything and never sees the audio.
 
 ## What the reader gets
 
-- A listen button, and a small player: play, stop, a progress bar and a clock.
-- The paragraph being read is marked in the page. Clicking any paragraph starts from there.
-- About a hundred voices, in five languages, and a speed control.
-- Nothing is remembered on the server. No accounts, no cookies, no analytics.
+- A listen button, and a player with play/pause, stop, previous and next paragraph.
+- A paragraph slider: drag it to jump to a paragraph, and it doubles as the progress bar.
+- The paragraph being read is marked in the page, and clicking any paragraph starts from there.
+- A voice picker (about a hundred voices), a speed control and a volume control.
+- A clock, and a "Paragraph 3 of 12" readout.
+
+Each of those controls can be switched off on the settings screen, so a site can keep the
+player to a bare play button if it wants one.
 
 ## What you get
 
-- **Settings, Read-Aloud**: enable it, pick the default voice, the default speed, and where the button goes (at the end of the post, or floating in the corner).
+- **Settings, Read-Aloud**:
+  - enable or disable the player;
+  - which post types get one (posts, pages, or any public type);
+  - where it goes;
+  - the default voice and speed;
+  - which controls the reader sees.
 - **A model setting.** The default is the public Phonon 31m checkpoint, which speaks English. For another language, host the checkpoint yourself and point the plugin at it.
+
+## Where the player goes
+
+| Setting | What happens |
+|---|---|
+| At the top of the post, under the title | Placed before the content |
+| At the end of the post | Placed after the content |
+| A floating button, bottom right | Fixed to the corner, panel opens above it |
+| Only where I put the shortcode | Nothing is added automatically |
+
+The shortcode is `[voxnemesis_read_aloud]`. Use it when the theme puts the content somewhere unexpected, or when you want the button halfway down an article.
 
 ## Hosting your own model
 
@@ -42,7 +58,9 @@ Put them somewhere your server can reach and set the model option to that URL:
 https://your-site.test/models/phonon-40m-es/
 ```
 
-The reader's browser then fetches `config.json`, `tokenizer.json` and `model.q8.gguf` from there. Your rack serves static files; the reader's browser does the work.
+Your rack serves static files; the reader's browser does the work. This is the shape of the
+thing if you have no compute: a shared host or an old server is enough, because nothing on
+it ever runs the model.
 
 The 40m checkpoints are CC BY-NC 4.0. The 31m one is Apache-2.0.
 
@@ -54,28 +72,45 @@ The CPU path is the one the native runtimes use and the one the model was built 
 
 ## Installing
 
-1. Copy the directory into `wp-content/plugins/voxnemesis-read-aloud`.
-2. Activate it from the plugins screen.
+1. Copy the directory into `wp-content/plugins/voxnemesis-read-aloud`, or upload the zip from the plugins screen.
+2. Activate it.
 3. Go to **Settings, Read-Aloud**. The player is on by default.
 
-That is the whole installation. There is no build step and nothing to compile.
+There is no build step and nothing to compile.
 
 ## Development
 
 ```bash
-php tests/run.php        # the plugin, against a WordPress stand-in
+php tests/run.php          # the plugin, against a WordPress stand-in
 php tests/make-fixture.php
 node tests/reader.test.js  # the reader, in a real browser
+node tests/screenshot.js   # regenerates assets/screenshot.png
 ```
 
-`tests/wp-stubs.php` is a small WordPress stand-in: it stubs the functions the plugin calls and lets the tests render the player and inspect the result. `tests/reader.test.js` serves the plugin's assets next to a page built from the plugin's **own markup**, so the browser test cannot drift from what the plugin actually renders.
+`tests/wp-stubs.php` is a small WordPress stand-in: it stubs the functions the plugin calls and lets the tests render the player and inspect the result.
 
-The browser test needs Playwright:
+`tests/reader.test.js` serves the plugin's assets next to a page built from the plugin's **own markup**, so the browser test cannot drift from what the plugin actually renders. It drives the reader for real: the model loads, the audio plays, the clock advances, the paragraphs are marked, the controls do what they say.
+
+The browser tests need Playwright:
 
 ```bash
 npm install --no-save playwright
 node tests/reader.test.js
 ```
+
+### What the stand-in does not catch
+
+It does not load `wp-admin/includes`, and it does not run WordPress's script printing. Both of
+those produced bugs in 0.1.0 that the stand-in cheerfully passed:
+
+- `add_settings_section()` on `init` fataled every request, because the front end never loads
+  the file that defines it. Hook is now `admin_init`.
+- `wp_add_inline_script()` data is concatenated into the script tag before `script_loader_tag`
+  runs. Rebuilding that tag dropped the config. The tag is now edited in place.
+
+So the plugin was also run against a real WordPress with the SQLite drop-in, and the position
+settings, the shortcode, the settings save and the reader were all exercised there. That is
+the test that matters, and it is the one to repeat before a release.
 
 ## The layout
 
@@ -84,12 +119,12 @@ voxnemesis-read-aloud.php     the plugin header and the bootstrap
 includes/
   class-voxnemesis-read-aloud.php  hooks, assets, the wasm endpoint, the settings
   class-settings.php                reading and sanitising the options
-  class-player.php                  the markup, and the paragraphs it reads
+  class-player.php                  the markup, the paragraph markers, the shortcode
 assets/
   css/reader.css                    the styles, on the NemesisNet tokens
   js/reader.js                      the reader, as an ES module
   vendor/phonon-tts/                the Phonon runtime, vendored
-tests/                            the stand-in, the fixture and the browser test
+tests/                            the stand-in, the fixture and the browser tests
 ```
 
 ### The wasm and its content type

@@ -60,15 +60,22 @@ final class VoxNemesis_Read_Aloud {
 		$this->settings = new VoxNemesis_Read_Aloud_Settings();
 		$this->player   = new VoxNemesis_Read_Aloud_Player( $this->settings );
 
-		add_action( 'init', array( $this, 'register_settings' ) );
+		// The Settings API lives in wp-admin/includes, which the front end never loads.
+		// Registering on init fataled the whole site: add_settings_section() does not exist
+		// out here. admin_init is the hook that fires once those files are in.
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_menu', array( $this, 'add_settings_page' ) );
-		add_action( 'admin_post_vnra_clear_cache', array( $this, 'handle_clear_cache' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		// The config has to exist before the module runs. Modules are deferred, and this
+		// prints during parsing, so it is always early enough.
+		add_action( 'wp_footer', array( $this, 'print_config' ), 5 );
 		add_action( 'template_redirect', array( $this, 'maybe_serve_wasm' ), 0 );
 
 		add_filter( 'the_content', array( $this->player, 'filter_content' ), 999 );
 		add_filter( 'script_loader_tag', array( $this, 'module_script_tag' ), 10, 3 );
+
+		add_shortcode( 'voxnemesis_read_aloud', array( $this->player, 'shortcode' ) );
 	}
 
 	/**
@@ -111,6 +118,14 @@ final class VoxNemesis_Read_Aloud {
 			'vnra_enabled',
 			__( 'Enable the player', 'voxnemesis-read-aloud' ),
 			array( $this, 'render_field_enabled' ),
+			'vnra-settings',
+			'vnra_general'
+		);
+
+		add_settings_field(
+			'vnra_post_types',
+			__( 'Show on', 'voxnemesis-read-aloud' ),
+			array( $this, 'render_field_post_types' ),
 			'vnra-settings',
 			'vnra_general'
 		);
@@ -304,6 +319,15 @@ final class VoxNemesis_Read_Aloud {
 				</option>
 			<?php endforeach; ?>
 		</select>
+		<p class="description">
+			<?php
+			printf(
+				/* translators: %s: the shortcode. */
+				esc_html__( 'For the last option, place %s in the post, or use a block that runs shortcodes.', 'voxnemesis-read-aloud' ),
+				'<code>[voxnemesis_read_aloud]</code>'
+			);
+			?>
+		</p>
 		<?php
 	}
 
@@ -313,35 +337,46 @@ final class VoxNemesis_Read_Aloud {
 	 * @return void
 	 */
 	public function render_field_options_ui() {
-		?>
-		<label style="margin-right: 18px;">
-			<input
-				type="checkbox"
-				name="vnra_options[show_voice_picker]"
-				value="1"
-				<?php checked( $this->settings->show_voice_picker() ); ?>
-			/>
-			<?php esc_html_e( 'Voice picker', 'voxnemesis-read-aloud' ); ?>
-		</label>
-		<label style="margin-right: 18px;">
-			<input
-				type="checkbox"
-				name="vnra_options[show_speed]"
-				value="1"
-				<?php checked( $this->settings->show_speed() ); ?>
-			/>
-			<?php esc_html_e( 'Speed', 'voxnemesis-read-aloud' ); ?>
-		</label>
-		<label>
-			<input
-				type="checkbox"
-				name="vnra_options[highlight]"
-				value="1"
-				<?php checked( $this->settings->highlight() ); ?>
-			/>
-			<?php esc_html_e( 'Highlight the paragraph being read', 'voxnemesis-read-aloud' ); ?>
-		</label>
-		<?php
+		$toggles = array(
+			'show_voice_picker' => __( 'Voice picker', 'voxnemesis-read-aloud' ),
+			'show_speed'        => __( 'Speed', 'voxnemesis-read-aloud' ),
+			'show_volume'       => __( 'Volume', 'voxnemesis-read-aloud' ),
+			'show_skip'         => __( 'Previous and next paragraph', 'voxnemesis-read-aloud' ),
+			'show_seek'         => __( 'Paragraph slider', 'voxnemesis-read-aloud' ),
+			'highlight'         => __( 'Highlight the paragraph being read', 'voxnemesis-read-aloud' ),
+		);
+
+		echo '<fieldset>';
+		foreach ( $toggles as $key => $label ) {
+			printf(
+				'<label style="display:block;margin-bottom:6px;"><input type="checkbox" name="%s" value="1" %s /> %s</label>',
+				esc_attr( 'vnra_options[' . $key . ']' ),
+				checked( (bool) $this->settings->get( $key ), true, false ),
+				esc_html( $label )
+			);
+		}
+		echo '</fieldset>';
+	}
+
+	/**
+	 * Which post types get a player.
+	 *
+	 * @return void
+	 */
+	public function render_field_post_types() {
+		echo '<fieldset>';
+		foreach ( $this->settings->available_post_types() as $value => $label ) {
+			printf(
+				'<label style="display:block;margin-bottom:6px;"><input type="checkbox" name="vnra_options[post_types][]" value="%s" %s /> %s</label>',
+				esc_attr( $value ),
+				checked( $this->settings->applies_to( $value ), true, false ),
+				esc_html( $label )
+			);
+		}
+		echo '</fieldset>';
+		echo '<p class="description">';
+		esc_html_e( 'Where the listen button is added automatically.', 'voxnemesis-read-aloud' );
+		echo '</p>';
 	}
 
 	/**
@@ -352,12 +387,27 @@ final class VoxNemesis_Read_Aloud {
 	 */
 	public function sanitize_options( $input ) {
 		$input   = is_array( $input ) ? $input : array();
-		$clean   = $this->settings->defaults();
+		$clean = $this->settings->defaults();
 
-		$clean['enabled']         = ! empty( $input['enabled'] );
-		$clean['show_voice_picker'] = ! empty( $input['show_voice_picker'] );
-		$clean['show_speed']      = ! empty( $input['show_speed'] );
-		$clean['highlight']       = ! empty( $input['highlight'] );
+		$clean['enabled'] = ! empty( $input['enabled'] );
+
+		$flags = array( 'show_voice_picker', 'show_speed', 'show_volume', 'show_skip', 'show_seek', 'highlight' );
+		foreach ( $flags as $flag ) {
+			$clean[ $flag ] = ! empty( $input[ $flag ] );
+		}
+
+		// Post types: only the public ones this site actually has, and never an empty list
+		// by accident (a form that posts no boxes means none were ticked, which is a choice).
+		$clean['post_types'] = array();
+		if ( isset( $input['post_types'] ) && is_array( $input['post_types'] ) ) {
+			$available = array_keys( $this->settings->available_post_types() );
+			foreach ( $input['post_types'] as $type ) {
+				$type = sanitize_key( $type );
+				if ( in_array( $type, $available, true ) ) {
+					$clean['post_types'][] = $type;
+				}
+			}
+		}
 
 		if ( isset( $input['model'] ) ) {
 			$model = trim( (string) $input['model'] );
@@ -388,25 +438,30 @@ final class VoxNemesis_Read_Aloud {
 	 */
 	public function script_config() {
 		return array(
-			'model'        => $this->settings->model(),
-			'catalogUrl'   => self::CATALOG_URL,
-			'voice'        => $this->settings->voice(),
-			'speed'        => $this->settings->speed(),
-			'lang'         => $this->settings->lang(),
-			'showVoice'    => $this->settings->show_voice_picker(),
-			'showSpeed'    => $this->settings->show_speed(),
-			'highlight'    => $this->settings->highlight(),
-			'wasmUrl'      => $this->wasm_url( 'relaxed' ),
-			'simdWasmUrl'  => $this->wasm_url( 'simd' ),
-			'workerUrl'    => $this->asset_url( 'assets/vendor/phonon-tts/worker.js' ),
-			'strings'      => array(
+			'model'       => $this->settings->model(),
+			'catalogUrl'  => self::CATALOG_URL,
+			'voice'       => $this->settings->voice(),
+			'speed'       => $this->settings->speed(),
+			'lang'        => $this->settings->lang(),
+			'showVoice'   => $this->settings->show_voice_picker(),
+			'showSpeed'   => $this->settings->show_speed(),
+			'showVolume'  => $this->settings->show_volume(),
+			'showSkip'    => $this->settings->show_skip(),
+			'showSeek'    => $this->settings->show_seek(),
+			'highlight'   => $this->settings->highlight(),
+			'wasmUrl'     => $this->wasm_url( 'relaxed' ),
+			'simdWasmUrl' => $this->wasm_url( 'simd' ),
+			'workerUrl'   => $this->asset_url( 'assets/vendor/phonon-tts/worker.js' ),
+			'strings'     => array(
 				'listen'      => __( 'Listen to this post', 'voxnemesis-read-aloud' ),
 				'stop'        => __( 'Stop', 'voxnemesis-read-aloud' ),
-				'loading'     => __( 'Fetching the voice model. This is a one-off download of about 64 MB, kept in your browser afterwards.', 'voxnemesis-read-aloud' ),
+				'loading'     => __( 'Fetching the voice model. About 64 MB, once. Your browser keeps it afterwards.', 'voxnemesis-read-aloud' ),
+				'downloading' => __( 'Fetching the model', 'voxnemesis-read-aloud' ),
 				'ready'       => __( 'Ready to read.', 'voxnemesis-read-aloud' ),
 				'playing'     => __( 'Reading', 'voxnemesis-read-aloud' ),
 				'paused'      => __( 'Paused', 'voxnemesis-read-aloud' ),
 				'finished'    => __( 'Finished.', 'voxnemesis-read-aloud' ),
+				'paragraph'   => __( 'Paragraph %1$s of %2$s', 'voxnemesis-read-aloud' ),
 				'unsupported' => __( 'Your browser cannot run this. It needs WebAssembly, and WebAssembly SIMD.', 'voxnemesis-read-aloud' ),
 				'failed'      => __( 'That did not work.', 'voxnemesis-read-aloud' ),
 			),
@@ -470,11 +525,26 @@ final class VoxNemesis_Read_Aloud {
 			VNRA_VERSION,
 			true
 		);
+	}
 
-		wp_add_inline_script(
-			'vnra-reader',
+	/**
+	 * The config the module reads.
+	 *
+	 * Printed on its own rather than with wp_add_inline_script(): that data is prepended to
+	 * the script tag, and the script tag is filtered below to make it a module. Rebuilding
+	 * the tag there silently dropped the config, and the module fell back to the runtime's
+	 * defaults. A separate tag cannot be swallowed by the filter.
+	 *
+	 * @return void
+	 */
+	public function print_config() {
+		if ( ! wp_script_is( 'vnra-reader', 'enqueued' ) ) {
+			return;
+		}
+
+		wp_print_inline_script_tag(
 			'window.voxnemesisReadAloud = ' . wp_json_encode( $this->script_config() ) . ';',
-			'before'
+			array( 'id' => 'vnra-reader-config' )
 		);
 	}
 
@@ -484,7 +554,11 @@ final class VoxNemesis_Read_Aloud {
 	 * The runtime is plain ES modules, and the worker it starts is a module worker, so the
 	 * script that imports it has to be a module too.
 	 *
-	 * @param string $tag    The script tag.
+	 * The tag is edited in place. Rebuilding it was a mistake worth writing down: WordPress
+	 * concatenates the translations and any inline scripts into the same string before this
+	 * filter runs, so returning a fresh tag throws them away.
+	 *
+	 * @param string $tag    The script tag, and anything WordPress put in front of it.
 	 * @param string $handle The script handle.
 	 * @param string $src    The script source.
 	 * @return string
@@ -493,7 +567,19 @@ final class VoxNemesis_Read_Aloud {
 		if ( 'vnra-reader' !== $handle ) {
 			return $tag;
 		}
-		return sprintf( '<script type="module" src="%s" id="%s-js"></script>' . "\n", esc_url( $src ), esc_attr( $handle ) );
+
+		$quoted = preg_quote( $src, '~' );
+		// esc_url() may have encoded the ampersands in the query string.
+		$quoted = str_replace( '&', '(?:&|&#0?38;|&amp;)', $quoted );
+
+		$replaced = preg_replace(
+			'~<script(?=[^>]*\ssrc=["\']' . $quoted . '["\'])~i',
+			'<script type="module"',
+			$tag,
+			1
+		);
+
+		return null === $replaced ? $tag : $replaced;
 	}
 
 	/**

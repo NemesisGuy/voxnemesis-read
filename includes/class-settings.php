@@ -33,15 +33,19 @@ final class VoxNemesis_Read_Aloud_Settings {
 	 */
 	public function defaults() {
 		return array(
-			'enabled'          => true,
-			'model'            => VoxNemesis_Read_Aloud::DEFAULT_MODEL,
-			'voice'            => 'default',
-			'speed'            => 1.0,
-			'lang'             => 'en',
-			'position'         => 'after_content',
+			'enabled'           => true,
+			'post_types'        => array( 'post' ),
+			'model'             => VoxNemesis_Read_Aloud::DEFAULT_MODEL,
+			'voice'             => 'default',
+			'speed'             => 1.0,
+			'lang'              => 'en',
+			'position'          => 'after_content',
 			'show_voice_picker' => true,
-			'show_speed'       => true,
-			'highlight'        => true,
+			'show_speed'        => true,
+			'show_volume'       => true,
+			'show_skip'         => true,
+			'show_seek'         => true,
+			'highlight'         => true,
 		);
 	}
 
@@ -54,7 +58,7 @@ final class VoxNemesis_Read_Aloud_Settings {
 	 */
 	public function get( $key, $default = null ) {
 		if ( null === $this->values ) {
-			$stored        = get_option( self::OPTION, array() );
+			$stored       = get_option( self::OPTION, array() );
 			$this->values = is_array( $stored ) ? array_merge( $this->defaults(), $stored ) : $this->defaults();
 		}
 
@@ -66,12 +70,41 @@ final class VoxNemesis_Read_Aloud_Settings {
 	}
 
 	/**
+	 * Reset the cache, after a save.
+	 *
+	 * @return void
+	 */
+	public function flush() {
+		$this->values = null;
+	}
+
+	/**
 	 * Whether the player is on.
 	 *
 	 * @return bool
 	 */
 	public function enabled() {
 		return (bool) $this->get( 'enabled' );
+	}
+
+	/**
+	 * The post types the player is added to.
+	 *
+	 * @return array
+	 */
+	public function post_types() {
+		$types = $this->get( 'post_types' );
+		return is_array( $types ) ? $types : array();
+	}
+
+	/**
+	 * Whether this post type gets a player.
+	 *
+	 * @param string $type The post type.
+	 * @return bool
+	 */
+	public function applies_to( $type ) {
+		return in_array( $type, $this->post_types(), true );
 	}
 
 	/**
@@ -111,7 +144,7 @@ final class VoxNemesis_Read_Aloud_Settings {
 	}
 
 	/**
-	 * Where the button goes.
+	 * Where the player goes.
 	 *
 	 * @return string
 	 */
@@ -138,6 +171,33 @@ final class VoxNemesis_Read_Aloud_Settings {
 	}
 
 	/**
+	 * Whether the volume control is shown.
+	 *
+	 * @return bool
+	 */
+	public function show_volume() {
+		return (bool) $this->get( 'show_volume' );
+	}
+
+	/**
+	 * Whether the skip controls are shown.
+	 *
+	 * @return bool
+	 */
+	public function show_skip() {
+		return (bool) $this->get( 'show_skip' );
+	}
+
+	/**
+	 * Whether the paragraph slider is shown.
+	 *
+	 * @return bool
+	 */
+	public function show_seek() {
+		return (bool) $this->get( 'show_seek' );
+	}
+
+	/**
 	 * Whether the paragraph being read is highlighted.
 	 *
 	 * @return bool
@@ -147,14 +207,41 @@ final class VoxNemesis_Read_Aloud_Settings {
 	}
 
 	/**
-	 * The positions the button can go.
+	 * The positions the player can go.
 	 *
 	 * @return array
 	 */
 	public function positions() {
 		return array(
-			'after_content' => __( 'At the end of the post', 'voxnemesis-read-aloud' ),
-			'floating'      => __( 'A floating button, bottom right', 'voxnemesis-read-aloud' ),
+			'before_content' => __( 'At the top of the post, under the title', 'voxnemesis-read-aloud' ),
+			'after_content'  => __( 'At the end of the post', 'voxnemesis-read-aloud' ),
+			'floating'       => __( 'A floating button, bottom right', 'voxnemesis-read-aloud' ),
+			'shortcode'      => __( 'Only where I put the shortcode', 'voxnemesis-read-aloud' ),
 		);
+	}
+
+	/**
+	 * The public post types, for the settings screen.
+	 *
+	 * @return array
+	 */
+	public function available_post_types() {
+		$types = get_post_types(
+			array(
+				'public'  => true,
+				'show_ui' => true,
+			),
+			'objects'
+		);
+
+		$out = array();
+		foreach ( $types as $type ) {
+			if ( 'attachment' === $type->name ) {
+				continue;
+			}
+			$out[ $type->name ] = $type->labels->singular_name;
+		}
+
+		return $out;
 	}
 }
