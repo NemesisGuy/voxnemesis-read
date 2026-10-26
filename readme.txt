@@ -117,6 +117,12 @@ The button is a real button, the player is labelled, the progress is announced t
 * Paragraph marking, and click a paragraph to start from there.
 * A model setting, for hosting a checkpoint yourself.
 
+== Links ==
+
+* NemesisNet: https://nemesisnet.co.za
+* Brand guide: https://brand.nemesisnet.co.za
+* GitHub: https://github.com/NemesisGuy/voxnemesis-read
+
 == Upgrade Notice ==
 
 = 0.1.1 =

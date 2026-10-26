@@ -146,6 +146,12 @@ tests/                            the stand-in, the fixture and the browser test
 
 A browser refuses to compile a WebAssembly module that was not served as `application/wasm`, and not every host is configured for that. The plugin therefore serves the wasm itself, from `includes/class-voxnemesis-read.php`, with the right header and a long cache lifetime. The rest of the assets are served by the web server as usual.
 
+## Links
+
+- **NemesisNet** — [nemesisnet.co.za](https://nemesisnet.co.za)
+- **Brand guide** — [brand.nemesisnet.co.za](https://brand.nemesisnet.co.za)
+- **GitHub** — [NemesisGuy/voxnemesis-read](https://github.com/NemesisGuy/voxnemesis-read)
+
 ## Licence
 
 MIT for the plugin. The vendored runtime in `assets/vendor/phonon-tts/` is MIT OR Apache-2.0, copyright Gradium. The model weights are not part of the plugin and carry their own licences: `phonon-31m-en` is Apache-2.0, the Phonon 40m checkpoints are CC BY-NC 4.0.
