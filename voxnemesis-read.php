@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       VoxNemesis Read-Aloud
+ * Plugin Name:       VoxNemesis Read
  * Plugin URI:        https://nemesisnet.co.za
  * Description:       Let readers hear your posts, with the speech generated in their own browser. No server inference, no API key, no per-request cost.
  * Version:           0.1.2
@@ -10,10 +10,10 @@
  * Author URI:        https://nemesisnet.co.za
  * License:           MIT
  * License URI:       https://opensource.org/licenses/MIT
- * Text Domain:       voxnemesis-read-aloud
+ * Text Domain:       voxnemesis-read
  * Domain Path:       /languages
  *
- * @package VoxNemesis_Read_Aloud
+ * @package voxnemesis_read
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -26,17 +26,17 @@ define( 'VNRA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'VNRA_URL', plugin_dir_url( __FILE__ ) );
 define( 'VNRA_BASENAME', plugin_basename( __FILE__ ) );
 
-require_once VNRA_PATH . 'includes/class-voxnemesis-read-aloud.php';
+require_once VNRA_PATH . 'includes/class-voxnemesis-read.php';
 require_once VNRA_PATH . 'includes/class-settings.php';
 require_once VNRA_PATH . 'includes/class-player.php';
 
 /**
  * The one instance of the plugin.
  *
- * @return VoxNemesis_Read_Aloud
+ * @return voxnemesis_read
  */
-function voxnemesis_read_aloud() {
-    return VoxNemesis_Read_Aloud::instance();
+function voxnemesis_read() {
+    return voxnemesis_read::instance();
 }
 
-voxnemesis_read_aloud()->boot();
+voxnemesis_read()->boot();

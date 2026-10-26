@@ -2,7 +2,7 @@
 /**
  * The front end: the markup, and the paragraphs the reader speaks.
  *
- * @package VoxNemesis_Read_Aloud
+ * @package voxnemesis_read
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,14 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * VoxNemesis Read-Aloud player.
+ * VoxNemesis Read player.
  */
-final class VoxNemesis_Read_Aloud_Player {
+final class voxnemesis_read_Player {
 
 	/**
 	 * The settings.
 	 *
-	 * @var VoxNemesis_Read_Aloud_Settings
+	 * @var voxnemesis_read_Settings
 	 */
 	private $settings;
 
@@ -47,9 +47,9 @@ final class VoxNemesis_Read_Aloud_Player {
 	/**
 	 * Constructor.
 	 *
-	 * @param VoxNemesis_Read_Aloud_Settings $settings The settings.
+	 * @param voxnemesis_read_Settings $settings The settings.
 	 */
-	public function __construct( VoxNemesis_Read_Aloud_Settings $settings ) {
+	public function __construct( voxnemesis_read_Settings $settings ) {
 		$this->settings = $settings;
 	}
 
@@ -184,7 +184,7 @@ final class VoxNemesis_Read_Aloud_Player {
 				<svg class="vnra__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
 					<path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a3.5 3.5 0 0 0-2-3.16v6.32a3.5 3.5 0 0 0 2-3.16zM14 3.23v2.06a6 6 0 0 1 0 11.42v2.06a8 8 0 0 0 0-15.54z"/>
 				</svg>
-				<span class="vnra__listen-text"><?php esc_html_e( 'Listen to this post', 'voxnemesis-read-aloud' ); ?></span>
+				<span class="vnra__listen-text"><?php esc_html_e( 'Listen to this post', 'voxnemesis-read' ); ?></span>
 			</button>
 
 			<div class="vnra__panel" id="<?php echo esc_attr( $id ); ?>-panel" hidden>
@@ -203,7 +203,7 @@ final class VoxNemesis_Read_Aloud_Player {
 
 				<?php if ( $this->settings->show_seek() ) : ?>
 					<label class="vnra__seek-wrap">
-						<span class="screen-reader-text"><?php esc_html_e( 'Jump to a paragraph', 'voxnemesis-read-aloud' ); ?></span>
+						<span class="screen-reader-text"><?php esc_html_e( 'Jump to a paragraph', 'voxnemesis-read' ); ?></span>
 						<input
 							type="range"
 							class="vnra__seek"
@@ -212,7 +212,7 @@ final class VoxNemesis_Read_Aloud_Player {
 							step="1"
 							value="0"
 							disabled
-							aria-label="<?php esc_attr_e( 'Jump to a paragraph', 'voxnemesis-read-aloud' ); ?>"
+							aria-label="<?php esc_attr_e( 'Jump to a paragraph', 'voxnemesis-read' ); ?>"
 						/>
 						<span class="vnra__seek-count"></span>
 					</label>
@@ -220,23 +220,23 @@ final class VoxNemesis_Read_Aloud_Player {
 
 				<div class="vnra__controls">
 					<?php if ( $this->settings->show_skip() ) : ?>
-						<button type="button" class="vnra__prev vnra__button" aria-label="<?php esc_attr_e( 'Previous paragraph', 'voxnemesis-read-aloud' ); ?>">
+						<button type="button" class="vnra__prev vnra__button" aria-label="<?php esc_attr_e( 'Previous paragraph', 'voxnemesis-read' ); ?>">
 							<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>
 						</button>
 					<?php endif; ?>
 
-					<button type="button" class="vnra__play vnra__button vnra__button--primary" aria-label="<?php esc_attr_e( 'Play', 'voxnemesis-read-aloud' ); ?>">
+					<button type="button" class="vnra__play vnra__button vnra__button--primary" aria-label="<?php esc_attr_e( 'Play', 'voxnemesis-read' ); ?>">
 						<svg class="vnra__icon-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
 						<svg class="vnra__icon-pause" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>
 					</button>
 
 					<?php if ( $this->settings->show_skip() ) : ?>
-						<button type="button" class="vnra__next vnra__button" aria-label="<?php esc_attr_e( 'Next paragraph', 'voxnemesis-read-aloud' ); ?>">
+						<button type="button" class="vnra__next vnra__button" aria-label="<?php esc_attr_e( 'Next paragraph', 'voxnemesis-read' ); ?>">
 							<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>
 						</button>
 					<?php endif; ?>
 
-					<button type="button" class="vnra__stop vnra__button" aria-label="<?php esc_attr_e( 'Stop', 'voxnemesis-read-aloud' ); ?>">
+					<button type="button" class="vnra__stop vnra__button" aria-label="<?php esc_attr_e( 'Stop', 'voxnemesis-read' ); ?>">
 						<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 6h12v12H6z"/></svg>
 					</button>
 
@@ -248,16 +248,16 @@ final class VoxNemesis_Read_Aloud_Player {
 				<div class="vnra__options">
 					<?php if ( $this->settings->show_voice_picker() ) : ?>
 						<label class="vnra__option">
-							<span class="vnra__option-label"><?php esc_html_e( 'Voice', 'voxnemesis-read-aloud' ); ?></span>
+							<span class="vnra__option-label"><?php esc_html_e( 'Voice', 'voxnemesis-read' ); ?></span>
 							<select class="vnra__voice">
-								<option value="default"><?php esc_html_e( 'The default voice', 'voxnemesis-read-aloud' ); ?></option>
+								<option value="default"><?php esc_html_e( 'The default voice', 'voxnemesis-read' ); ?></option>
 							</select>
 						</label>
 					<?php endif; ?>
 
 					<?php if ( $this->settings->show_speed() ) : ?>
 						<label class="vnra__option">
-							<span class="vnra__option-label"><?php esc_html_e( 'Speed', 'voxnemesis-read-aloud' ); ?></span>
+							<span class="vnra__option-label"><?php esc_html_e( 'Speed', 'voxnemesis-read' ); ?></span>
 							<input type="range" class="vnra__speed" min="0.5" max="2" step="0.05" value="<?php echo esc_attr( $this->settings->speed() ); ?>" />
 							<output class="vnra__speed-value"><?php echo esc_html( number_format_i18n( $this->settings->speed(), 2 ) ); ?></output>
 						</label>
@@ -265,7 +265,7 @@ final class VoxNemesis_Read_Aloud_Player {
 
 					<?php if ( $this->settings->show_volume() ) : ?>
 						<label class="vnra__option">
-							<span class="vnra__option-label"><?php esc_html_e( 'Volume', 'voxnemesis-read-aloud' ); ?></span>
+							<span class="vnra__option-label"><?php esc_html_e( 'Volume', 'voxnemesis-read' ); ?></span>
 							<input type="range" class="vnra__volume" min="0" max="1" step="0.05" value="1" />
 						</label>
 					<?php endif; ?>

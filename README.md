@@ -1,4 +1,4 @@
-# VoxNemesis Read-Aloud
+# VoxNemesis Read
 
 A WordPress plugin that lets readers hear your posts, with the speech generated in **their own browser**.
 
@@ -52,7 +52,7 @@ The player is built for small screens: a full-width listen button, 44 px touch t
 | A floating button, bottom right | Fixed to the corner, panel opens above it |
 | Only where I put the shortcode | Nothing is added automatically |
 
-The shortcode is `[voxnemesis_read_aloud]`. Use it when the theme puts the content somewhere unexpected, or when you want the button halfway down an article.
+The shortcode is `[voxnemesis_read]`. Use it when the theme puts the content somewhere unexpected, or when you want the button halfway down an article.
 
 ## Hosting your own model
 
@@ -84,7 +84,7 @@ The CPU path is the one the native runtimes use and the one the model was built 
 
 ## Installing
 
-1. Copy the directory into `wp-content/plugins/voxnemesis-read-aloud`, or upload the zip from the plugins screen.
+1. Copy the directory into `wp-content/plugins/voxnemesis-read`, or upload the zip from the plugins screen.
 2. Activate it.
 3. Go to **Settings, Read-Aloud**. The player is on by default.
 
@@ -127,9 +127,9 @@ the test that matters, and it is the one to repeat before a release.
 ## The layout
 
 ```
-voxnemesis-read-aloud.php     the plugin header and the bootstrap
+voxnemesis-read.php     the plugin header and the bootstrap
 includes/
-  class-voxnemesis-read-aloud.php  hooks, assets, the wasm endpoint, the settings
+  class-voxnemesis-read.php  hooks, assets, the wasm endpoint, the settings
   class-settings.php                reading and sanitising the options
   class-player.php                  the markup, the paragraph markers, the shortcode
 assets/
@@ -141,7 +141,7 @@ tests/                            the stand-in, the fixture and the browser test
 
 ### The wasm and its content type
 
-A browser refuses to compile a WebAssembly module that was not served as `application/wasm`, and not every host is configured for that. The plugin therefore serves the wasm itself, from `includes/class-voxnemesis-read-aloud.php`, with the right header and a long cache lifetime. The rest of the assets are served by the web server as usual.
+A browser refuses to compile a WebAssembly module that was not served as `application/wasm`, and not every host is configured for that. The plugin therefore serves the wasm itself, from `includes/class-voxnemesis-read.php`, with the right header and a long cache lifetime. The rest of the assets are served by the web server as usual.
 
 ## Licence
 

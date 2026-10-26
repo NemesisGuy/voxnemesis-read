@@ -38,7 +38,7 @@ stand-in.
 - Play and pause share a button and show the right icon for the state.
 - Post type selection: posts, pages, or both.
 - "At the top of the post" and "only where I put the shortcode" positions.
-- `[voxnemesis_read_aloud]` shortcode.
+- `[voxnemesis_read]` shortcode.
 - Per-control toggles on the settings screen.
 
 ### Changed

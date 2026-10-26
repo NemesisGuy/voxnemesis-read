@@ -2,7 +2,7 @@
 /**
  * The settings, read from the options table.
  *
- * @package VoxNemesis_Read_Aloud
+ * @package voxnemesis_read
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * VoxNemesis Read-Aloud settings.
+ * VoxNemesis Read settings.
  */
-final class VoxNemesis_Read_Aloud_Settings {
+final class voxnemesis_read_Settings {
 
 	/**
 	 * The option name.
@@ -35,7 +35,7 @@ final class VoxNemesis_Read_Aloud_Settings {
 		return array(
 			'enabled'           => true,
 			'post_types'        => array( 'post' ),
-			'model'             => VoxNemesis_Read_Aloud::DEFAULT_MODEL,
+			'model'             => voxnemesis_read::DEFAULT_MODEL,
 			'voice'             => 'default',
 			'speed'             => 1.0,
 			'lang'              => 'en',
@@ -225,9 +225,9 @@ final class VoxNemesis_Read_Aloud_Settings {
 	 */
 	public function styles() {
 		return array(
-			'auto'  => __( 'Follow the theme', 'voxnemesis-read-aloud' ),
-			'light' => __( 'Always light', 'voxnemesis-read-aloud' ),
-			'dark'  => __( 'Always dark', 'voxnemesis-read-aloud' ),
+			'auto'  => __( 'Follow the theme', 'voxnemesis-read' ),
+			'light' => __( 'Always light', 'voxnemesis-read' ),
+			'dark'  => __( 'Always dark', 'voxnemesis-read' ),
 		);
 	}
 
@@ -292,10 +292,10 @@ final class VoxNemesis_Read_Aloud_Settings {
 	 */
 	public function positions() {
 		return array(
-			'before_content' => __( 'At the top of the post, under the title', 'voxnemesis-read-aloud' ),
-			'after_content'  => __( 'At the end of the post', 'voxnemesis-read-aloud' ),
-			'floating'       => __( 'A floating button, bottom right', 'voxnemesis-read-aloud' ),
-			'shortcode'      => __( 'Only where I put the shortcode', 'voxnemesis-read-aloud' ),
+			'before_content' => __( 'At the top of the post, under the title', 'voxnemesis-read' ),
+			'after_content'  => __( 'At the end of the post', 'voxnemesis-read' ),
+			'floating'       => __( 'A floating button, bottom right', 'voxnemesis-read' ),
+			'shortcode'      => __( 'Only where I put the shortcode', 'voxnemesis-read' ),
 		);
 	}
 

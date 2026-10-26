@@ -2,7 +2,7 @@
 /**
  * The plugin: hooks, assets, the wasm endpoint and the settings.
  *
- * @package VoxNemesis_Read_Aloud
+ * @package voxnemesis_read
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,39 +10,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * VoxNemesis Read-Aloud.
+ * VoxNemesis Read.
  *
  * The speech is generated in the reader's own browser, by the Phonon model running in
  * WebAssembly. Nothing is sent to this site, and nothing is sent to a third party either:
  * the model weights are fetched once from a public host and kept in the browser's cache.
  */
-final class VoxNemesis_Read_Aloud {
+final class voxnemesis_read {
 
 	/**
 	 * The one instance.
 	 *
-	 * @var VoxNemesis_Read_Aloud|null
+	 * @var voxnemesis_read|null
 	 */
 	private static $instance = null;
 
 	/**
 	 * The settings.
 	 *
-	 * @var VoxNemesis_Read_Aloud_Settings
+	 * @var voxnemesis_read_Settings
 	 */
 	public $settings;
 
 	/**
 	 * The front end.
 	 *
-	 * @var VoxNemesis_Read_Aloud_Player
+	 * @var voxnemesis_read_Player
 	 */
 	public $player;
 
 	/**
 	 * The instance.
 	 *
-	 * @return VoxNemesis_Read_Aloud
+	 * @return voxnemesis_read
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -57,8 +57,8 @@ final class VoxNemesis_Read_Aloud {
 	 * @return void
 	 */
 	public function boot() {
-		$this->settings = new VoxNemesis_Read_Aloud_Settings();
-		$this->player   = new VoxNemesis_Read_Aloud_Player( $this->settings );
+		$this->settings = new voxnemesis_read_Settings();
+		$this->player   = new voxnemesis_read_Player( $this->settings );
 
 		// The Settings API lives in wp-admin/includes, which the front end never loads.
 		// Registering on init fataled the whole site: add_settings_section() does not exist
@@ -75,7 +75,7 @@ final class VoxNemesis_Read_Aloud {
 		add_filter( 'the_content', array( $this->player, 'filter_content' ), 999 );
 		add_filter( 'script_loader_tag', array( $this, 'module_script_tag' ), 10, 3 );
 
-		add_shortcode( 'voxnemesis_read_aloud', array( $this->player, 'shortcode' ) );
+		add_shortcode( 'voxnemesis_read', array( $this->player, 'shortcode' ) );
 	}
 
 	/**
@@ -109,14 +109,14 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_section(
 			'vnra_general',
-			__( 'Read-aloud', 'voxnemesis-read-aloud' ),
+			__( 'Read-aloud', 'voxnemesis-read' ),
 			array( $this, 'render_section_intro' ),
 			'vnra-settings'
 		);
 
 		add_settings_field(
 			'vnra_enabled',
-			__( 'Enable the player', 'voxnemesis-read-aloud' ),
+			__( 'Enable the player', 'voxnemesis-read' ),
 			array( $this, 'render_field_enabled' ),
 			'vnra-settings',
 			'vnra_general'
@@ -124,7 +124,7 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_field(
 			'vnra_post_types',
-			__( 'Show on', 'voxnemesis-read-aloud' ),
+			__( 'Show on', 'voxnemesis-read' ),
 			array( $this, 'render_field_post_types' ),
 			'vnra-settings',
 			'vnra_general'
@@ -132,7 +132,7 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_field(
 			'vnra_model',
-			__( 'Model', 'voxnemesis-read-aloud' ),
+			__( 'Model', 'voxnemesis-read' ),
 			array( $this, 'render_field_model' ),
 			'vnra-settings',
 			'vnra_general'
@@ -140,7 +140,7 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_field(
 			'vnra_voice',
-			__( 'Voice', 'voxnemesis-read-aloud' ),
+			__( 'Voice', 'voxnemesis-read' ),
 			array( $this, 'render_field_voice' ),
 			'vnra-settings',
 			'vnra_general'
@@ -148,7 +148,7 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_field(
 			'vnra_speed',
-			__( 'Speed', 'voxnemesis-read-aloud' ),
+			__( 'Speed', 'voxnemesis-read' ),
 			array( $this, 'render_field_speed' ),
 			'vnra-settings',
 			'vnra_general'
@@ -156,7 +156,7 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_field(
 			'vnra_position',
-			__( 'Where the button goes', 'voxnemesis-read-aloud' ),
+			__( 'Where the button goes', 'voxnemesis-read' ),
 			array( $this, 'render_field_position' ),
 			'vnra-settings',
 			'vnra_general'
@@ -164,7 +164,7 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_field(
 			'vnra_appearance',
-			__( 'Colours', 'voxnemesis-read-aloud' ),
+			__( 'Colours', 'voxnemesis-read' ),
 			array( $this, 'render_field_appearance' ),
 			'vnra-settings',
 			'vnra_general'
@@ -172,7 +172,7 @@ final class VoxNemesis_Read_Aloud {
 
 		add_settings_field(
 			'vnra_options_ui',
-			__( 'Reader controls', 'voxnemesis-read-aloud' ),
+			__( 'Reader controls', 'voxnemesis-read' ),
 			array( $this, 'render_field_options_ui' ),
 			'vnra-settings',
 			'vnra_general'
@@ -186,8 +186,8 @@ final class VoxNemesis_Read_Aloud {
 	 */
 	public function add_settings_page() {
 		add_options_page(
-			__( 'VoxNemesis Read-Aloud', 'voxnemesis-read-aloud' ),
-			__( 'Read-Aloud', 'voxnemesis-read-aloud' ),
+			__( 'VoxNemesis Read', 'voxnemesis-read' ),
+			__( 'Read-Aloud', 'voxnemesis-read' ),
 			'manage_options',
 			'vnra-settings',
 			array( $this, 'render_settings_page' )
@@ -205,9 +205,9 @@ final class VoxNemesis_Read_Aloud {
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'VoxNemesis Read-Aloud', 'voxnemesis-read-aloud' ); ?></h1>
+			<h1><?php esc_html_e( 'VoxNemesis Read', 'voxnemesis-read' ); ?></h1>
 			<p class="description">
-				<?php esc_html_e( 'The speech is generated in the reader\'s browser. This site serves the player and, at most, a model file. It never runs the model and never sees the audio.', 'voxnemesis-read-aloud' ); ?>
+				<?php esc_html_e( 'The speech is generated in the reader\'s browser. This site serves the player and, at most, a model file. It never runs the model and never sees the audio.', 'voxnemesis-read' ); ?>
 			</p>
 			<form action="options.php" method="post">
 				<?php
@@ -228,10 +228,10 @@ final class VoxNemesis_Read_Aloud {
 	public function render_section_intro() {
 		?>
 		<p>
-			<?php esc_html_e( 'The default model is the public Phonon 31m checkpoint, which speaks English. It is about 64 MB and is downloaded once per browser, then kept in the reader\'s cache.', 'voxnemesis-read-aloud' ); ?>
+			<?php esc_html_e( 'The default model is the public Phonon 31m checkpoint, which speaks English. It is about 64 MB and is downloaded once per browser, then kept in the reader\'s cache.', 'voxnemesis-read' ); ?>
 		</p>
 		<p>
-			<?php esc_html_e( 'For another language, host the checkpoint yourself and point the model setting at it. The files are static; nothing on this site computes anything.', 'voxnemesis-read-aloud' ); ?>
+			<?php esc_html_e( 'For another language, host the checkpoint yourself and point the model setting at it. The files are static; nothing on this site computes anything.', 'voxnemesis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -250,7 +250,7 @@ final class VoxNemesis_Read_Aloud {
 				value="1"
 				<?php checked( $this->settings->enabled() ); ?>
 			/>
-			<?php esc_html_e( 'Show the listen button on posts and pages', 'voxnemesis-read-aloud' ); ?>
+			<?php esc_html_e( 'Show the listen button on posts and pages', 'voxnemesis-read' ); ?>
 		</label>
 		<?php
 	}
@@ -269,7 +269,7 @@ final class VoxNemesis_Read_Aloud {
 			value="<?php echo esc_attr( $this->settings->model() ); ?>"
 		/>
 		<p class="description">
-			<?php esc_html_e( 'A Hugging Face repo as hf://owner/name@revision, or the base URL of a checkpoint you host, ending in a slash.', 'voxnemesis-read-aloud' ); ?>
+			<?php esc_html_e( 'A Hugging Face repo as hf://owner/name@revision, or the base URL of a checkpoint you host, ending in a slash.', 'voxnemesis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -289,7 +289,7 @@ final class VoxNemesis_Read_Aloud {
 			placeholder="Easton"
 		/>
 		<p class="description">
-			<?php esc_html_e( 'A name from the voice catalog, or the checkpoint\'s own default. The catalog has about a hundred voices.', 'voxnemesis-read-aloud' ); ?>
+			<?php esc_html_e( 'A name from the voice catalog, or the checkpoint\'s own default. The catalog has about a hundred voices.', 'voxnemesis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -331,8 +331,8 @@ final class VoxNemesis_Read_Aloud {
 			<?php
 			printf(
 				/* translators: %s: the shortcode. */
-				esc_html__( 'For the last option, place %s in the post, or use a block that runs shortcodes.', 'voxnemesis-read-aloud' ),
-				'<code>[voxnemesis_read_aloud]</code>'
+				esc_html__( 'For the last option, place %s in the post, or use a block that runs shortcodes.', 'voxnemesis-read' ),
+				'<code>[voxnemesis_read]</code>'
 			);
 			?>
 		</p>
@@ -354,21 +354,21 @@ final class VoxNemesis_Read_Aloud {
 			<?php endforeach; ?>
 		</select>
 		<p class="description">
-			<?php esc_html_e( 'Follow the theme is the right answer unless your theme does something unusual. The player takes its text, borders and background from the page, so a light theme gives it dark text and a dark theme gives it light text, and a theme with its own light/dark switch carries the player with it.', 'voxnemesis-read-aloud' ); ?>
+			<?php esc_html_e( 'Follow the theme is the right answer unless your theme does something unusual. The player takes its text, borders and background from the page, so a light theme gives it dark text and a dark theme gives it light text, and a theme with its own light/dark switch carries the player with it.', 'voxnemesis-read' ); ?>
 		</p>
 
 		<p style="margin-top:12px;">
 			<label style="margin-right:18px;">
-				<?php esc_html_e( 'Accent', 'voxnemesis-read-aloud' ); ?><br />
+				<?php esc_html_e( 'Accent', 'voxnemesis-read' ); ?><br />
 				<input type="color" name="vnra_options[accent]" value="<?php echo esc_attr( $this->settings->accent() ); ?>" />
 			</label>
 			<label>
-				<?php esc_html_e( 'Second accent', 'voxnemesis-read-aloud' ); ?><br />
+				<?php esc_html_e( 'Second accent', 'voxnemesis-read' ); ?><br />
 				<input type="color" name="vnra_options[accent_2]" value="<?php echo esc_attr( $this->settings->accent_2() ); ?>" />
 			</label>
 		</p>
 		<p class="description">
-			<?php esc_html_e( 'The two colours of the gradient: the play button, the progress fill and the level meter. The defaults are the NemesisNet blue and teal.', 'voxnemesis-read-aloud' ); ?>
+			<?php esc_html_e( 'The two colours of the gradient: the play button, the progress fill and the level meter. The defaults are the NemesisNet blue and teal.', 'voxnemesis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -380,12 +380,12 @@ final class VoxNemesis_Read_Aloud {
 	 */
 	public function render_field_options_ui() {
 		$toggles = array(
-			'show_voice_picker' => __( 'Voice picker', 'voxnemesis-read-aloud' ),
-			'show_speed'        => __( 'Speed', 'voxnemesis-read-aloud' ),
-			'show_volume'       => __( 'Volume', 'voxnemesis-read-aloud' ),
-			'show_skip'         => __( 'Previous and next paragraph', 'voxnemesis-read-aloud' ),
-			'show_seek'         => __( 'Paragraph slider', 'voxnemesis-read-aloud' ),
-			'highlight'         => __( 'Highlight the paragraph being read', 'voxnemesis-read-aloud' ),
+			'show_voice_picker' => __( 'Voice picker', 'voxnemesis-read' ),
+			'show_speed'        => __( 'Speed', 'voxnemesis-read' ),
+			'show_volume'       => __( 'Volume', 'voxnemesis-read' ),
+			'show_skip'         => __( 'Previous and next paragraph', 'voxnemesis-read' ),
+			'show_seek'         => __( 'Paragraph slider', 'voxnemesis-read' ),
+			'highlight'         => __( 'Highlight the paragraph being read', 'voxnemesis-read' ),
 		);
 
 		echo '<fieldset>';
@@ -417,7 +417,7 @@ final class VoxNemesis_Read_Aloud {
 		}
 		echo '</fieldset>';
 		echo '<p class="description">';
-		esc_html_e( 'Where the listen button is added automatically.', 'voxnemesis-read-aloud' );
+		esc_html_e( 'Where the listen button is added automatically.', 'voxnemesis-read' );
 		echo '</p>';
 	}
 
@@ -478,7 +478,7 @@ final class VoxNemesis_Read_Aloud {
 			if ( ! isset( $input[ $key ] ) ) {
 				continue;
 			}
-			$colour = VoxNemesis_Read_Aloud_Settings::sanitize_colour( $input[ $key ] );
+			$colour = voxnemesis_read_Settings::sanitize_colour( $input[ $key ] );
 			if ( '' !== $colour ) {
 				$clean[ $key ] = $colour;
 			}
@@ -496,8 +496,8 @@ final class VoxNemesis_Read_Aloud {
 	 * @return string
 	 */
 	public function inline_styles() {
-		$accent   = VoxNemesis_Read_Aloud_Settings::sanitize_colour( $this->settings->accent() );
-		$accent_2 = VoxNemesis_Read_Aloud_Settings::sanitize_colour( $this->settings->accent_2() );
+		$accent   = voxnemesis_read_Settings::sanitize_colour( $this->settings->accent() );
+		$accent_2 = voxnemesis_read_Settings::sanitize_colour( $this->settings->accent_2() );
 
 		if ( '' === $accent || '' === $accent_2 ) {
 			return '';
@@ -535,17 +535,17 @@ final class VoxNemesis_Read_Aloud {
 			'simdWasmUrl' => $this->wasm_url( 'simd' ),
 			'workerUrl'   => $this->asset_url( 'assets/vendor/phonon-tts/worker.js' ),
 			'strings'     => array(
-				'listen'      => __( 'Listen to this post', 'voxnemesis-read-aloud' ),
-				'stop'        => __( 'Stop', 'voxnemesis-read-aloud' ),
-				'loading'     => __( 'Fetching the voice model. About 64 MB, once. Your browser keeps it afterwards.', 'voxnemesis-read-aloud' ),
-				'downloading' => __( 'Fetching the model', 'voxnemesis-read-aloud' ),
-				'ready'       => __( 'Ready to read.', 'voxnemesis-read-aloud' ),
-				'playing'     => __( 'Reading', 'voxnemesis-read-aloud' ),
-				'paused'      => __( 'Paused', 'voxnemesis-read-aloud' ),
-				'finished'    => __( 'Finished.', 'voxnemesis-read-aloud' ),
-				'paragraph'   => __( 'Paragraph %1$s of %2$s', 'voxnemesis-read-aloud' ),
-				'unsupported' => __( 'Your browser cannot run this. It needs WebAssembly, and WebAssembly SIMD.', 'voxnemesis-read-aloud' ),
-				'failed'      => __( 'That did not work.', 'voxnemesis-read-aloud' ),
+				'listen'      => __( 'Listen to this post', 'voxnemesis-read' ),
+				'stop'        => __( 'Stop', 'voxnemesis-read' ),
+				'loading'     => __( 'Fetching the voice model. About 64 MB, once. Your browser keeps it afterwards.', 'voxnemesis-read' ),
+				'downloading' => __( 'Fetching the model', 'voxnemesis-read' ),
+				'ready'       => __( 'Ready to read.', 'voxnemesis-read' ),
+				'playing'     => __( 'Reading', 'voxnemesis-read' ),
+				'paused'      => __( 'Paused', 'voxnemesis-read' ),
+				'finished'    => __( 'Finished.', 'voxnemesis-read' ),
+				'paragraph'   => __( 'Paragraph %1$s of %2$s', 'voxnemesis-read' ),
+				'unsupported' => __( 'Your browser cannot run this. It needs WebAssembly, and WebAssembly SIMD.', 'voxnemesis-read' ),
+				'failed'      => __( 'That did not work.', 'voxnemesis-read' ),
 			),
 		);
 	}
@@ -630,7 +630,7 @@ final class VoxNemesis_Read_Aloud {
 		}
 
 		wp_print_inline_script_tag(
-			'window.voxnemesisReadAloud = ' . wp_json_encode( $this->script_config() ) . ';',
+			'window.voxnemesisRead = ' . wp_json_encode( $this->script_config() ) . ';',
 			array( 'id' => 'vnra-reader-config' )
 		);
 	}
