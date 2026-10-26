@@ -241,6 +241,7 @@ final class VoxNemesis_Read_Aloud_Player {
 					</button>
 
 					<span class="vnra__time vnra__time--current">0:00</span>
+					<span class="vnra__time vnra__time-separator" aria-hidden="true">/</span>
 					<span class="vnra__time vnra__time--duration">0:00</span>
 				</div>
 

@@ -312,21 +312,23 @@
     flex: 1 1 0;
     min-width: 2px;
     max-width: 12px;
-    height: 8%;
-    min-height: 3px;
+    height: 4%;
+    min-height: 2px;
     background: linear-gradient(
         180deg,
         var(--vnra-accent-2),
         var(--vnra-accent)
     );
     border-radius: 999px;
-    opacity: 0.5;
+    opacity: 0.35;
     transition:
         height 70ms linear,
         opacity 120ms ease;
 }
 
 .vnra.vnra[data-playing="true"] .vnra__meter span {
+    height: 8%;
+    min-height: 3px;
     opacity: 1;
 }
 
@@ -399,20 +401,22 @@
     filter: brightness(1.1);
 }
 
-/* Show play when stopped/paused; pause during playback. */
-.vnra.vnra .vnra__icon-play {
+/* Show play when stopped/paused; pause during playback. The svg tag in the
+ * selector raises specificity above the generic .vnra__button svg rule, so
+ * display: none actually wins. */
+.vnra.vnra .vnra__button svg.vnra__icon-play {
     display: block;
 }
 
-.vnra.vnra .vnra__icon-pause {
+.vnra.vnra .vnra__button svg.vnra__icon-pause {
     display: none;
 }
 
-.vnra.vnra[data-playing="true"] .vnra__icon-play {
+.vnra.vnra[data-playing="true"] .vnra__button svg.vnra__icon-play {
     display: none;
 }
 
-.vnra.vnra[data-playing="true"] .vnra__icon-pause {
+.vnra.vnra[data-playing="true"] .vnra__button svg.vnra__icon-pause {
     display: block;
 }
 
