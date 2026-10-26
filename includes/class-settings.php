@@ -49,6 +49,7 @@ final class voxnemesis_read_Settings {
 			'show_skip'         => true,
 			'show_seek'         => true,
 			'highlight'         => true,
+			'show_credit'       => false,
 		);
 	}
 
@@ -283,6 +284,17 @@ final class voxnemesis_read_Settings {
 	 */
 	public function highlight() {
 		return (bool) $this->get( 'highlight' );
+	}
+
+	/**
+	 * Whether the opt-in "Powered by VoxNemesis Read" credit is shown.
+	 *
+	 * Off by default, per the WordPress.org plugin guidelines.
+	 *
+	 * @return bool
+	 */
+	public function show_credit() {
+		return (bool) $this->get( 'show_credit' );
 	}
 
 	/**

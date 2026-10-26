@@ -109,7 +109,7 @@ final class voxnemesis_read {
 
 		add_settings_section(
 			'vnra_general',
-			__( 'Read-aloud', 'voxnemesis-read' ),
+			__( 'Read', 'voxnemesis-read' ),
 			array( $this, 'render_section_intro' ),
 			'vnra-settings'
 		);
@@ -177,6 +177,14 @@ final class voxnemesis_read {
 			'vnra-settings',
 			'vnra_general'
 		);
+
+		add_settings_field(
+			'vnra_show_credit',
+			__( 'Credit', 'voxnemesis-read' ),
+			array( $this, 'render_field_show_credit' ),
+			'vnra-settings',
+			'vnra_general'
+		);
 	}
 
 	/**
@@ -187,7 +195,7 @@ final class voxnemesis_read {
 	public function add_settings_page() {
 		add_options_page(
 			__( 'VoxNemesis Read', 'voxnemesis-read' ),
-			__( 'Read-Aloud', 'voxnemesis-read' ),
+			__( 'Read', 'voxnemesis-read' ),
 			'manage_options',
 			'vnra-settings',
 			array( $this, 'render_settings_page' )
@@ -216,6 +224,14 @@ final class voxnemesis_read {
 				submit_button();
 				?>
 			</form>
+
+			<hr style="margin: 2rem 0 1rem; border: none; border-top: 1px solid #ccd0d4;" />
+			<p style="color: #787c82; font-size: 13px; margin: 0;">
+				<strong>VoxNemesis Read</strong> <?php echo esc_html( VNRA_VERSION ); ?>
+				&middot; Made by <a href="<?php echo esc_url( VNRA_CREDIT_URL ); ?>" target="_blank" rel="noopener">NemesisNet</a>
+				&middot; <a href="https://github.com/NemesisGuy/voxnemesis-read" target="_blank" rel="noopener">Documentation</a>
+				&middot; <a href="https://nemesisnet.co.za" target="_blank" rel="noopener">Support</a>
+			</p>
 		</div>
 		<?php
 	}
@@ -401,6 +417,21 @@ final class voxnemesis_read {
 	}
 
 	/**
+	 * Whether the opt-in credit is shown.
+	 *
+	 * @return void
+	 */
+	public function render_field_show_credit() {
+		printf(
+			'<label><input type="checkbox" name="%s" value="1" %s /> %s</label>',
+			esc_attr( 'vnra_options[show_credit]' ),
+			checked( $this->settings->show_credit(), true, false ),
+			esc_html__( 'Show "Powered by VoxNemesis Read" credit under the player', 'voxnemesis-read' )
+		);
+		echo '<p class="description">' . esc_html__( 'Optional. Adds a small credit link below the player. Off by default. Thank you if you enable it.', 'voxnemesis-read' ) . '</p>';
+	}
+
+	/**
 	 * Which post types get a player.
 	 *
 	 * @return void
@@ -433,7 +464,7 @@ final class voxnemesis_read {
 
 		$clean['enabled'] = ! empty( $input['enabled'] );
 
-		$flags = array( 'show_voice_picker', 'show_speed', 'show_volume', 'show_skip', 'show_seek', 'highlight' );
+		$flags = array( 'show_voice_picker', 'show_speed', 'show_volume', 'show_skip', 'show_seek', 'highlight', 'show_credit' );
 		foreach ( $flags as $flag ) {
 			$clean[ $flag ] = ! empty( $input[ $flag ] );
 		}

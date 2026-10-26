@@ -271,6 +271,17 @@ final class voxnemesis_read_Player {
 					<?php endif; ?>
 				</div>
 			</div>
+
+			<?php if ( $this->settings->show_credit() ) : ?>
+				<?php
+				$credit_html = sprintf(
+					'<p class="vnra__credit"><a href="%s" target="_blank" rel="nofollow noopener">%s</a></p>',
+					esc_url( VNRA_CREDIT_URL ),
+					esc_html__( 'Powered by VoxNemesis Read', 'voxnemesis-read' )
+				);
+				echo apply_filters( 'vnra_credit_html', $credit_html );
+				?>
+			<?php endif; ?>
 		</div>
 		<?php
 

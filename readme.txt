@@ -34,7 +34,7 @@ Every one of those controls can be switched off on the settings screen, down to 
 
 = What you get =
 
-* Settings under Settings, Read-Aloud: enable it, choose which post types get a player, where the button goes, the default voice and speed, and which controls the reader sees.
+* Settings under Settings, Read: enable it, choose which post types get a player, where the button goes, the default voice and speed, and which controls the reader sees.
 * Four placements: at the top of the post, at the end, a floating button in the corner, or only where you put the `[voxnemesis_read]` shortcode.
 * The default model is the public Phonon 31m checkpoint, which speaks English.
 * For another language, host the checkpoint yourself and point the plugin at it. The files are static. Your rack serves them; the reader's browser does the work.
@@ -65,6 +65,10 @@ The first press downloads the model. It is kept in the reader's browser afterwar
 = Does this send my posts to a third party? =
 
 No. The text is read in the reader's browser and never leaves it. The only network request the reader makes is for the model weights, from a public host, and the voice catalog, from the same host.
+
+= Does the plugin add credit links to my site? =
+
+No. There is an optional, off-by-default setting to show a small credit. Nothing is shown unless you enable it.
 
 = Why is the download 64 MB? =
 
@@ -124,6 +128,9 @@ The button is a real button, the player is labelled, the progress is announced t
 * GitHub: https://github.com/NemesisGuy/voxnemesis-read
 
 == Upgrade Notice ==
+
+= 0.1.2 =
+Nothing to do. The renamed plugin installs cleanly over the old one; your settings are preserved.
 
 = 0.1.1 =
 Fixes a fatal error on activation that took the whole site down, and a bug that stopped the reader working at all. Upgrade.

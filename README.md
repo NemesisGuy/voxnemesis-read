@@ -28,7 +28,7 @@ player to a bare play button if it wants one.
 
 ## What you get
 
-- **Settings, Read-Aloud**:
+- **Settings, Read**:
   - enable or disable the player;
   - which post types get one (posts, pages, or any public type);
   - where it goes;
@@ -89,7 +89,7 @@ The CPU path is the one the native runtimes use and the one the model was built 
 
 1. Copy the directory into `wp-content/plugins/voxnemesis-read`, or upload the zip from the plugins screen.
 2. Activate it.
-3. Go to **Settings, Read-Aloud**. The player is on by default.
+3. Go to **Settings, Read**. The player is on by default.
 
 There is no build step and nothing to compile.
 

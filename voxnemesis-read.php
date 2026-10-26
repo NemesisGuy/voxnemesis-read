@@ -25,6 +25,7 @@ define( 'VNRA_FILE', __FILE__ );
 define( 'VNRA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'VNRA_URL', plugin_dir_url( __FILE__ ) );
 define( 'VNRA_BASENAME', plugin_basename( __FILE__ ) );
+define( 'VNRA_CREDIT_URL', 'https://nemesisnet.co.za' );
 
 require_once VNRA_PATH . 'includes/class-voxnemesis-read.php';
 require_once VNRA_PATH . 'includes/class-settings.php';
