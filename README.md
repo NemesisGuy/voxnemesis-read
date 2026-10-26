@@ -1,5 +1,8 @@
 # VoxNemesis Read
 
+> Your articles. Your browser. Your voice.
+
+
 A WordPress plugin that lets readers hear your posts, with the speech generated in **their own browser**.
 
 No server inference. No API key. No per-request cost. The text never leaves the reader's machine.
