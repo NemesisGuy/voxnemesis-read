@@ -172,6 +172,8 @@ final class VoxNemesis_Read_Aloud_Player {
 			id="<?php echo esc_attr( $id ); ?>"
 			data-vnra-player
 			data-playing="false"
+			data-busy="false"
+			data-vnra-style="<?php echo esc_attr( $this->settings->style() ); ?>"
 		>
 			<button
 				type="button"
@@ -186,7 +188,18 @@ final class VoxNemesis_Read_Aloud_Player {
 			</button>
 
 			<div class="vnra__panel" id="<?php echo esc_attr( $id ); ?>-panel" hidden>
-				<p class="vnra__status" role="status" aria-live="polite"></p>
+				<p class="vnra__status" role="status" aria-live="polite">
+					<span class="vnra__spinner" aria-hidden="true"></span>
+					<span class="vnra__status-text"></span>
+				</p>
+
+				<div class="vnra__download" aria-hidden="true"><span class="vnra__download-fill"></span></div>
+
+				<div class="vnra__meter" aria-hidden="true">
+					<?php for ( $bar = 0; $bar < 12; $bar++ ) : ?>
+						<span></span>
+					<?php endfor; ?>
+				</div>
 
 				<?php if ( $this->settings->show_seek() ) : ?>
 					<label class="vnra__seek-wrap">

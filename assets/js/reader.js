@@ -37,6 +37,9 @@ class Reader {
         this.panel = root.querySelector('.vnra__panel');
         this.listenButton = root.querySelector('.vnra__listen');
         this.status = root.querySelector('.vnra__status');
+        this.statusText = root.querySelector('.vnra__status-text') || this.status;
+        this.downloadFill = root.querySelector('.vnra__download-fill');
+        this.meterBars = Array.from(root.querySelectorAll('.vnra__meter span'));
         this.playButton = root.querySelector('.vnra__play');
         this.prevButton = root.querySelector('.vnra__prev');
         this.nextButton = root.querySelector('.vnra__next');
@@ -57,6 +60,8 @@ class Reader {
         this.loading = null;
         this.ctx = null;
         this.gain = null;
+        this.analyser = null;
+        this.meterFrame = null;
         this.sources = new Set();
 
         this.nextStartTime = 0;
@@ -194,8 +199,16 @@ class Reader {
         if (!this.status) {
             return;
         }
-        this.status.textContent = message;
+        this.statusText.textContent = message;
         this.status.classList.toggle('vnra__status--error', Boolean(isError));
+    }
+
+    /** The spinner and the download bar while the model is on its way. */
+    busy(on) {
+        this.root.dataset.busy = on ? 'true' : 'false';
+        if (!on && this.downloadFill) {
+            this.downloadFill.style.width = '0%';
+        }
     }
 
     setState() {
@@ -234,10 +247,12 @@ class Reader {
         }
 
         this.loading = this.loadModel();
+        this.busy(true);
         try {
             await this.loading;
         } finally {
             this.loading = null;
+            this.busy(false);
         }
     }
 
@@ -270,8 +285,11 @@ class Reader {
                 if (cached) {
                     return;
                 }
-                const percent = total ? ` ${Math.round((loaded / total) * 100)}%` : '';
-                this.say(`${text('downloading', 'Fetching the model')} ${file || ''}${percent}`.trim());
+                const share = total ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+                if (this.downloadFill && share > 0) {
+                    this.downloadFill.style.width = `${share}%`;
+                }
+                this.say(`${text('downloading', 'Fetching the model')} ${file || ''} ${share}%`.trim());
             }
         });
 
@@ -386,9 +404,69 @@ class Reader {
             this.ctx = new AudioContext({ sampleRate: 24000 });
             this.gain = this.ctx.createGain();
             this.gain.gain.value = this.volume;
-            this.gain.connect(this.ctx.destination);
+
+            // The analyser sits in the chain rather than hanging off it, so it is
+            // guaranteed to see the samples on every browser.
+            this.analyser = this.ctx.createAnalyser();
+            this.analyser.fftSize = 64;
+            this.analyser.smoothingTimeConstant = 0.75;
+
+            this.gain.connect(this.analyser);
+            this.analyser.connect(this.ctx.destination);
         }
         return this.ctx;
+    }
+
+    /**
+     * Drive the level meter from what is actually playing.
+     *
+     * Twelve bars, a band each. This is not a waveform of the post: the audio does not
+     * exist until it is generated, and drawing a shape it has not earned would be a lie.
+     */
+    startMeter() {
+        if (!this.meterBars.length || !this.analyser || this.meterFrame) {
+            return;
+        }
+
+        const bins = new Uint8Array(this.analyser.frequencyBinCount);
+        const step = Math.max(1, Math.floor(bins.length / this.meterBars.length));
+
+        const draw = () => {
+            if (!this.playing || this.paused) {
+                this.meterFrame = null;
+                this.flattenMeter();
+                return;
+            }
+
+            this.analyser.getByteFrequencyData(bins);
+
+            this.meterBars.forEach((bar, index) => {
+                let sum = 0;
+                for (let offset = 0; offset < step; offset += 1) {
+                    sum += bins[index * step + offset] || 0;
+                }
+                const level = sum / step / 255;
+                bar.style.height = `${Math.max(8, Math.round(level * 100))}%`;
+            });
+
+            this.meterFrame = requestAnimationFrame(draw);
+        };
+
+        this.meterFrame = requestAnimationFrame(draw);
+    }
+
+    stopMeter() {
+        if (this.meterFrame) {
+            cancelAnimationFrame(this.meterFrame);
+            this.meterFrame = null;
+        }
+        this.flattenMeter();
+    }
+
+    flattenMeter() {
+        this.meterBars.forEach((bar) => {
+            bar.style.height = '';
+        });
     }
 
     /** Play, pause or resume, depending on where things are. */
@@ -435,6 +513,7 @@ class Reader {
         this.setState();
         this.say(text('playing', 'Reading.'));
         this.tick();
+        this.startMeter();
 
         let voice = 'default';
         try {
@@ -469,6 +548,7 @@ class Reader {
         this.playing = false;
         this.paused = false;
         this.setState();
+        this.stopMeter();
         this.setProgress(1);
         if (this.timeCurrent) {
             this.timeCurrent.textContent = formatTime(this.duration);
@@ -548,6 +628,7 @@ class Reader {
         if (this.ctx.state === 'running') {
             this.ctx.suspend();
         }
+        this.stopMeter();
         this.say(text('paused', 'Paused.'));
     }
 
@@ -565,6 +646,7 @@ class Reader {
         this.setState();
         this.say(text('playing', 'Reading.'));
         this.tick();
+        this.startMeter();
     }
 
     /** Back a paragraph, or back to the start of this one. */
@@ -623,6 +705,7 @@ class Reader {
             clearInterval(this.timer);
             this.timer = null;
         }
+        this.stopMeter();
         this.highlight(-1);
 
         if (reset) {
@@ -735,3 +818,148 @@ if (document.readyState === 'loading') {
 }
 
 export { Reader, formatTime, durationDelta };
+
+/* ------------------------------------------------------------------ */
+/* The resolver.                                                       */
+/*                                                                     */
+/* The stylesheet keeps two fixed palettes and picks between them on    */
+/* data-vnra-resolved. Deriving colours from the page's own text does   */
+/* not survive themes that write their text with an alpha: color-mix()  */
+/* compounds the alpha and the muted text dissolves into the page. So   */
+/* the reader measures the page behind the player and declares which    */
+/* palette the theme is actually in. A pinned mode is left alone: the   */
+/* owner picked light or dark, and gets light or dark. Before this      */
+/* runs, the stylesheet follows the OS preference.                      */
+/*                                                                     */
+/* It picks on the background, not the text, because the palettes paint */
+/* their own panel over the page: the panel has to sit in the page,     */
+/* whatever the page's text is doing.                                  */
+/*                                                                     */
+/* Colours are read through a one-pixel canvas, because getComputedStyle */
+/* happily answers `color(srgb ...)` for color-mix() and gradients, and */
+/* nobody wants to parse those by hand.                                */
+/* ------------------------------------------------------------------ */
+
+(function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+
+    /** A CSS colour as [r, g, b, a], or null for fully transparent. */
+    function parse(value) {
+        if (!value) {
+            return null;
+        }
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = '#000000';
+        ctx.fillStyle = value;
+        ctx.fillRect(0, 0, 1, 1);
+        const data = ctx.getImageData(0, 0, 1, 1).data;
+        if (data[3] === 0) {
+            return null;
+        }
+        return [data[0], data[1], data[2], data[3] / 255];
+    }
+
+    /** `fg` painted over `bg`. */
+    function over(fg, bg) {
+        const a = fg[3];
+        return [
+            fg[0] * a + bg[0] * (1 - a),
+            fg[1] * a + bg[1] * (1 - a),
+            fg[2] * a + bg[2] * (1 - a),
+            1
+        ];
+    }
+
+    function luminance(colour) {
+        const channel = (v) => {
+            const c = v / 255;
+            return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        };
+        return 0.2126 * channel(colour[0]) + 0.7152 * channel(colour[1]) + 0.0722 * channel(colour[2]);
+    }
+
+    /**
+     * The page behind the player, as one solid colour.
+     *
+     * Ancestor backgrounds composite from the top down, gradients averaged over their
+     * stops. An approximation: a gradient is not one colour. It is close enough to tell
+     * a light page from a dark one, which is all the resolver needs.
+     */
+    function background(el) {
+        const chain = [];
+        let node = el.parentElement;
+        while (node) {
+            chain.unshift(node);
+            node = node.parentElement;
+        }
+
+        let bg = [255, 255, 255, 1];
+        for (const ancestor of chain) {
+            const cs = getComputedStyle(ancestor);
+
+            const colour = parse(cs.backgroundColor);
+            if (colour) {
+                bg = over(colour, bg);
+            }
+
+            if (cs.backgroundImage && cs.backgroundImage !== 'none') {
+                const stops = (cs.backgroundImage.match(/rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}/g) || [])
+                    .map(parse)
+                    .filter(Boolean);
+                if (stops.length) {
+                    const averaged = [
+                        stops.reduce((total, stop) => total + stop[0], 0) / stops.length,
+                        stops.reduce((total, stop) => total + stop[1], 0) / stops.length,
+                        stops.reduce((total, stop) => total + stop[2], 0) / stops.length,
+                        stops.reduce((total, stop) => total + stop[3], 0) / stops.length
+                    ];
+                    bg = over(averaged, bg);
+                }
+            }
+        }
+        return bg;
+    }
+
+    function resolve(root) {
+        // A pinned mode means the owner took over. The resolver has nothing to say to it,
+        // and the stylesheet does not read the attribute without auto anyway.
+        if ((root.dataset.vnraStyle || 'auto') !== 'auto') {
+            return;
+        }
+
+        const page = background(root);
+        if (!page) {
+            return;
+        }
+
+        const darkPage = luminance(page) < 0.42;
+        root.setAttribute('data-vnra-resolved', darkPage ? 'dark' : 'light');
+    }
+
+    function sync() {
+        document.querySelectorAll('.vnra[data-vnra-player]').forEach(resolve);
+    }
+
+    window.vnraSyncTheme = sync;
+
+    if (document.readyState !== 'loading') {
+        sync();
+    }
+    document.addEventListener('DOMContentLoaded', sync);
+    window.addEventListener('load', sync);
+    // Styles may still be arriving when the module runs: re-check once.
+    setTimeout(sync, 300);
+
+    // A theme can switch its own mode at runtime. Re-measure when the document or body
+    // changes, and on any click, which is how most site theme toggles work.
+    const observer = new MutationObserver(sync);
+    [document.documentElement, document.body].forEach((node) => {
+        if (node) {
+            observer.observe(node, { attributes: true, attributeFilter: ['class', 'data-theme', 'style'] });
+        }
+    });
+    document.addEventListener('click', sync, true);
+})();

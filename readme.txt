@@ -4,7 +4,7 @@ Tags: text to speech, tts, read aloud, accessibility, phonon
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,14 @@ Every one of those controls can be switched off on the settings screen, down to 
 * The default model is the public Phonon 31m checkpoint, which speaks English.
 * For another language, host the checkpoint yourself and point the plugin at it. The files are static. Your rack serves them; the reader's browser does the work.
 * Nothing is stored about the reader. No accounts, no cookies, no analytics.
+
+= Appearance settings =
+
+* **Style:** auto (follows the site theme), light or dark. Pinned modes override the theme entirely.
+* **Accent colour:** the brand colour for the play button, the paragraph slider's filled track and the highlight ring.
+* **Accent 2 colour:** the secondary colour used in gradients and the live level meter.
+
+The player reads the theme's own background and text, measures what is actually painted, and picks a light or dark palette on its own. Borders, the muted "Paragraph X of Y" text, the clock and the paragraph highlight all stay readable whether the theme is light, dark, or writes its text with a transparency. The player is built for small screens: full-width listen button, 44 px touch targets and thumbs sized for a thumb.
 
 = A note on the WebGPU path =
 

@@ -89,6 +89,14 @@ function serve() {
             return;
         }
 
+        // Headed Chromium asks for a favicon; a 404 here looks like a plugin error
+        // in the console report. It is not. Silence it.
+        if (url.pathname === '/favicon.ico') {
+            res.writeHead(204);
+            res.end();
+            return;
+        }
+
         res.writeHead(404);
         res.end('not found');
     });
@@ -105,14 +113,32 @@ async function main() {
     const port = server.address().port;
     const base = `http://127.0.0.1:${port}`;
 
-    const browser = await chromium.launch({
-        headless: false,
-        args: ['--autoplay-policy=no-user-gesture-required', '--no-first-run']
-    });
+    // VNRA_PROFILE points at a persistent browser profile. Without it every run
+    // re-downloads about 64 MB of weights from Hugging Face, and that download
+    // sometimes stalls and fails the whole run. The Cache API keeps the weights in
+    // the profile, so with it only the first run pays.
+    const profile = process.env.VNRA_PROFILE || null;
+
+    const browser = profile
+        ? await chromium.launchPersistentContext(profile, {
+              headless: false,
+              viewport: { width: 1280, height: 800 },
+              args: ['--autoplay-policy=no-user-gesture-required', '--no-first-run']
+          })
+        : await chromium.launch({
+              headless: false,
+              args: ['--autoplay-policy=no-user-gesture-required', '--no-first-run']
+          });
 
     const page = await browser.newPage();
     const errors = [];
     page.on('pageerror', (err) => errors.push(err.message));
+    // A bare "404" tells nobody anything. Name the resource.
+    page.on('response', (res) => {
+        if (res.status() >= 400) {
+            errors.push(`failed resource: ${res.status()} ${res.url()}`);
+        }
+    });
     page.on('console', (msg) => {
         if (msg.type() === 'error') {
             errors.push(msg.text());
@@ -145,6 +171,23 @@ async function main() {
 
     // Open the panel and load the model. The first run downloads about 64 MB.
     await page.click('.vnra__listen');
+
+    // While it is loading: the spinner is out, the meter is flat, and the download bar is
+    // moving. This is the state the reader actually stares at for a minute and a half.
+    await page.waitForTimeout(1200);
+    const busy = await page.evaluate(() => ({
+        busy: document.querySelector('[data-vnra-player]').dataset.busy,
+        spinner: getComputedStyle(document.querySelector('.vnra__spinner')).display,
+        download: getComputedStyle(document.querySelector('.vnra__download')).display,
+        bars: document.querySelectorAll('.vnra__meter span').length,
+        style: document.querySelector('[data-vnra-player]').dataset.vnraStyle
+    }));
+    results.push(['the player reports that it is busy', busy.busy === 'true']);
+    results.push(['the spinner is shown while loading', busy.spinner !== 'none']);
+    results.push(['the download bar is shown while loading', busy.download !== 'none']);
+    results.push(['the level meter has twelve bars', busy.bars === 12]);
+    results.push(['the colour mode is on the player', busy.style === 'auto']);
+    console.log('  loading:', JSON.stringify(busy));
     console.log('clicked listen, loading the model...');
 
     const ready = await page
@@ -176,7 +219,11 @@ async function main() {
         count: document.querySelector('.vnra__seek-count').textContent,
         reading: document.querySelectorAll('.vnra-para--reading').length,
         state: document.querySelector('[data-vnra-player]').dataset.playing,
-        pauseIcon: getComputedStyle(document.querySelector('.vnra__icon-pause')).display
+        pauseIcon: getComputedStyle(document.querySelector('.vnra__icon-pause')).display,
+        meter: Array.from(document.querySelectorAll('.vnra__meter span')).reduce(
+            (tallest, bar) => Math.max(tallest, parseFloat(bar.style.height) || 0),
+            0
+        )
     }));
     results.push(['the clock advances', playing.time !== '0:00']);
     results.push(['the slider fills', parseFloat(playing.progress || '0') > 0]);
@@ -184,6 +231,7 @@ async function main() {
     results.push(['a paragraph is marked as being read', playing.reading === 1]);
     results.push(['the player reports that it is playing', playing.state === 'true']);
     results.push(['the button shows a pause icon', playing.pauseIcon !== 'none']);
+    results.push(['the level meter is moving', playing.meter > 0]);
     console.log('  playback:', JSON.stringify(playing));
 
     // Pause and resume.

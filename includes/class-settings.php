@@ -40,6 +40,9 @@ final class VoxNemesis_Read_Aloud_Settings {
 			'speed'             => 1.0,
 			'lang'              => 'en',
 			'position'          => 'after_content',
+			'style'             => 'auto',
+			'accent'            => '#2979ff',
+			'accent_2'          => '#00c2a8',
 			'show_voice_picker' => true,
 			'show_speed'        => true,
 			'show_volume'       => true,
@@ -150,6 +153,82 @@ final class VoxNemesis_Read_Aloud_Settings {
 	 */
 	public function position() {
 		return (string) $this->get( 'position' );
+	}
+
+	/**
+	 * How the player takes its colours: 'auto', 'light' or 'dark'.
+	 *
+	 * 'auto' is not a palette. It derives every neutral from the page's own text colour, so
+	 * the player follows the theme, including a theme's own light/dark toggle.
+	 *
+	 * @return string
+	 */
+	public function style() {
+		$style = (string) $this->get( 'style' );
+		return array_key_exists( $style, $this->styles() ) ? $style : 'auto';
+	}
+
+	/**
+	 * The first accent colour.
+	 *
+	 * @return string
+	 */
+	public function accent() {
+		return $this->colour( 'accent' );
+	}
+
+	/**
+	 * The second accent colour.
+	 *
+	 * @return string
+	 */
+	public function accent_2() {
+		return $this->colour( 'accent_2' );
+	}
+
+	/**
+	 * A stored colour, or the default when it is not a colour.
+	 *
+	 * @param string $key The setting.
+	 * @return string
+	 */
+	private function colour( $key ) {
+		$value     = (string) $this->get( $key );
+		$defaults  = $this->defaults();
+		$fallback  = isset( $defaults[ $key ] ) ? $defaults[ $key ] : '#2979ff';
+		$sanitised = self::sanitize_colour( $value );
+
+		return $sanitised ? $sanitised : $fallback;
+	}
+
+	/**
+	 * A hex colour, or an empty string.
+	 *
+	 * Deliberately narrow: three or six hex digits. Nothing else goes into a stylesheet.
+	 *
+	 * @param mixed $value The candidate.
+	 * @return string
+	 */
+	public static function sanitize_colour( $value ) {
+		$value = trim( (string) $value );
+		if ( preg_match( '/^#([a-f0-9]{3}|[a-f0-9]{6})$/i', $value ) ) {
+			return strtolower( $value );
+		}
+
+		return '';
+	}
+
+	/**
+	 * The colour modes, for the settings screen.
+	 *
+	 * @return array
+	 */
+	public function styles() {
+		return array(
+			'auto'  => __( 'Follow the theme', 'voxnemesis-read-aloud' ),
+			'light' => __( 'Always light', 'voxnemesis-read-aloud' ),
+			'dark'  => __( 'Always dark', 'voxnemesis-read-aloud' ),
+		);
 	}
 
 	/**

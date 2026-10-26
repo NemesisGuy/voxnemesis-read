@@ -1,341 +1,763 @@
-/**
- * VoxNemesis Read-Aloud.
+/*
+ * VoxNemesis Read-Aloud
+ * Theme-aware player. Selectors are doubled (.vnra.vnra) and the contested
+ * properties use !important so theme-level select / range / card styles
+ * cannot override them.
  *
- * The colours are the NemesisNet production tokens, the same ones the extension uses, so the
- * player sits in a post the way the rest of the site does.
+ * data-vnra-style on .vnra:
+ *   auto  - follows the SITE theme (data-vnra-resolved, set by JS).
+ *           Before the JS runs it follows the OS preference.
+ *   light - always light
+ *   dark  - always dark
  */
 
-.vnra {
-	--vnra-blue: #1e88e5;
-	--vnra-blue-bright: #2979ff;
-	--vnra-teal: #00c2a8;
-	--vnra-black: #0a0e27;
-	--vnra-white: #f4f4f4;
-	--vnra-text-muted: rgba(244, 244, 244, 0.72);
-	--vnra-glass: rgba(255, 255, 255, 0.04);
-	--vnra-border: rgba(255, 255, 255, 0.1);
-	--vnra-accent-glow: rgba(41, 121, 255, 0.16);
-	--vnra-radius: 12px;
+/* ------------------------------------------------------------------ */
+/* Variables                                                           */
+/* ------------------------------------------------------------------ */
 
-	margin: 1.75rem 0;
-	font-family: inherit;
-	color: inherit;
+.vnra.vnra,
+.vnra-para {
+    --vnra-accent: #2979ff;
+    --vnra-accent-2: #00c2a8;
+    --vnra-muted: #5b6270;
+    --vnra-line: #cfd5df;
+    --vnra-surface: #eef1f6;
+    --vnra-panel-bg: #ffffff;
+    --vnra-panel-text: #1b1d21;
+    --vnra-control-bg: #ffffff;
+    --vnra-control-text: #1b1d21;
+    --vnra-error: #c5221f;
+    --vnra-progress: 0%;
+    box-sizing: border-box;
 }
 
-.vnra *,
-.vnra *::before,
-.vnra *::after {
-	box-sizing: border-box;
+.vnra.vnra *,
+.vnra.vnra *::before,
+.vnra.vnra *::after {
+    box-sizing: border-box;
 }
 
-.vnra__listen {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.55rem;
-	padding: 0.6rem 1.1rem;
-	border: 1px solid var(--vnra-border);
-	border-radius: var(--vnra-radius);
-	background: var(--vnra-glass);
-	color: inherit;
-	font: inherit;
-	font-weight: 500;
-	cursor: pointer;
-	transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-		transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Light (explicit, or auto resolved to light). */
+.vnra.vnra[data-vnra-style="light"],
+.vnra.vnra[data-vnra-style="auto"][data-vnra-resolved="light"] {
+    color-scheme: light;
+    --vnra-muted: #5b6270;
+    --vnra-line: #cfd5df;
+    --vnra-surface: #eef1f6;
+    --vnra-panel-bg: #ffffff;
+    --vnra-panel-text: #1b1d21;
+    --vnra-control-bg: #ffffff;
+    --vnra-control-text: #1b1d21;
+    --vnra-error: #c5221f;
 }
 
-.vnra__listen:hover,
-.vnra__listen:focus-visible {
-	background: var(--vnra-blue);
-	border-color: var(--vnra-blue);
-	color: var(--vnra-black);
-	transform: translateY(-2px);
-	box-shadow: 0 8px 24px var(--vnra-accent-glow);
+/* Dark (explicit, or auto resolved to dark). */
+.vnra.vnra[data-vnra-style="dark"],
+.vnra.vnra[data-vnra-style="auto"][data-vnra-resolved="dark"] {
+    color-scheme: dark;
+    --vnra-muted: #aab2bf;
+    --vnra-line: #3d4450;
+    --vnra-surface: #262b34;
+    --vnra-panel-bg: #171a20;
+    --vnra-panel-text: #f1f3f5;
+    --vnra-control-bg: #242933;
+    --vnra-control-text: #f1f3f5;
+    --vnra-error: #ff8a80;
 }
 
-.vnra__listen:focus-visible,
-.vnra__button:focus-visible,
-.vnra__seek:focus-visible,
-.vnra__option select:focus-visible,
-.vnra__option input:focus-visible {
-	outline: 2px solid var(--vnra-blue-bright);
-	outline-offset: 2px;
+/* Auto, before the JS has resolved the site theme: follow the OS. */
+.vnra.vnra[data-vnra-style="auto"]:not([data-vnra-resolved]) {
+    color-scheme: light dark;
 }
 
-.vnra__icon {
-	flex: 0 0 auto;
+@media (prefers-color-scheme: dark) {
+    .vnra.vnra[data-vnra-style="auto"]:not([data-vnra-resolved]) {
+        --vnra-muted: #aab2bf;
+        --vnra-line: #3d4450;
+        --vnra-surface: #262b34;
+        --vnra-panel-bg: #171a20;
+        --vnra-panel-text: #f1f3f5;
+        --vnra-control-bg: #242933;
+        --vnra-control-text: #f1f3f5;
+        --vnra-error: #ff8a80;
+    }
 }
 
-.vnra__panel {
-	margin-top: 0.85rem;
-	padding: 1rem;
-	border: 1px solid var(--vnra-border);
-	border-radius: var(--vnra-radius);
-	background: var(--vnra-glass);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
-	max-width: 36rem;
+/* ------------------------------------------------------------------ */
+/* Wrapper and spacing                                                 */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra {
+    position: relative;
+    display: block !important;
+    max-width: 100%;
+    margin: 0 0 2rem !important;
+    padding: 0 !important;
+    color: inherit;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
-.vnra__panel[hidden] {
-	display: none;
+/*
+ * A real spacer element after the player. Margin and padding on the
+ * wrapper can be collapsed or reset by themes, and a following block with
+ * a negative margin can pull up over them. This cannot be collapsed.
+ */
+.vnra.vnra::after {
+    content: "";
+    display: block;
+    height: 2rem;
+    clear: both;
 }
 
-.vnra__status {
-	margin: 0 0 0.75rem;
-	font-size: 0.85rem;
-	line-height: 1.5;
-	color: var(--vnra-text-muted);
+.vnra.vnra button,
+.vnra.vnra input,
+.vnra.vnra select {
+    font: inherit;
 }
 
-.vnra__status--error {
-	color: #ff6f3c;
+.vnra.vnra button {
+    cursor: pointer;
 }
 
-/* The paragraph slider. It doubles as the progress bar: the fill is driven by the
-   --vnra-progress variable, which the reader updates as it plays. */
-
-.vnra__seek-wrap {
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
-	margin: 0 0 0.9rem;
+.vnra.vnra button:disabled,
+.vnra.vnra input:disabled,
+.vnra.vnra select:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
 }
 
-.vnra__seek {
-	-webkit-appearance: none;
-	appearance: none;
-	flex: 1 1 auto;
-	height: 6px;
-	border-radius: 3px;
-	cursor: pointer;
-	background: linear-gradient(
-		90deg,
-		var(--vnra-blue) 0%,
-		var(--vnra-teal) var(--vnra-progress, 0%),
-		var(--vnra-border) var(--vnra-progress, 0%),
-		var(--vnra-border) 100%
-	);
+.vnra.vnra button:focus-visible,
+.vnra.vnra input:focus-visible,
+.vnra.vnra select:focus-visible {
+    outline: 2px solid var(--vnra-accent);
+    outline-offset: 3px;
 }
 
-.vnra__seek:disabled {
-	cursor: default;
-	opacity: 0.45;
+/* ------------------------------------------------------------------ */
+/* Listen button                                                       */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra .vnra__listen {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    max-width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--vnra-accent);
+    border-radius: 0.7rem;
+    background: var(--vnra-accent);
+    color: #ffffff;
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    touch-action: manipulation;
+    transition:
+        filter 150ms ease,
+        transform 150ms ease,
+        box-shadow 150ms ease;
 }
 
-.vnra__seek::-webkit-slider-thumb {
-	-webkit-appearance: none;
-	appearance: none;
-	width: 14px;
-	height: 14px;
-	border-radius: 50%;
-	background: var(--vnra-white);
-	border: 2px solid var(--vnra-teal);
-	box-shadow: 0 0 0 4px rgba(0, 194, 168, 0.15);
-	cursor: pointer;
+.vnra.vnra .vnra__listen:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
 }
 
-.vnra__seek::-moz-range-thumb {
-	width: 12px;
-	height: 12px;
-	border-radius: 50%;
-	background: var(--vnra-white);
-	border: 2px solid var(--vnra-teal);
-	cursor: pointer;
+.vnra.vnra .vnra__listen:active {
+    transform: translateY(1px);
 }
 
-.vnra__seek-count {
-	flex: 0 0 auto;
-	font-size: 0.75rem;
-	color: var(--vnra-text-muted);
-	font-variant-numeric: tabular-nums;
-	white-space: nowrap;
+.vnra.vnra .vnra__icon {
+    display: block;
+    flex: 0 0 auto;
 }
 
-.vnra__seek-count:empty {
-	display: none;
+/* ------------------------------------------------------------------ */
+/* Player panel (solid, not translucent)                               */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra .vnra__panel {
+    width: 100%;
+    min-width: 0;
+    margin: 0.75rem 0 0 !important;
+    padding: 1rem;
+    color: var(--vnra-panel-text) !important;
+    background: var(--vnra-panel-bg) !important;
+    background-image: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border: 1px solid var(--vnra-line);
+    border-radius: 0.85rem;
+    box-shadow: 0 4px 18px rgb(0 0 0 / 8%);
 }
 
-.vnra__controls {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
+.vnra.vnra .vnra__panel[hidden] {
+    display: none !important;
 }
 
-.vnra__button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 2.35rem;
-	height: 2.35rem;
-	padding: 0;
-	border: 1px solid var(--vnra-border);
-	border-radius: 50%;
-	background: var(--vnra-glass);
-	color: inherit;
-	cursor: pointer;
-	flex: 0 0 auto;
-	transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-		transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Floating player. */
+.vnra.vnra.vnra--floating {
+    position: fixed;
+    z-index: 99999;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    width: min(390px, calc(100vw - 2rem));
+    margin: 0 !important;
 }
 
-.vnra__button:hover {
-	transform: translateY(-2px);
-	border-color: var(--vnra-blue);
+.vnra.vnra.vnra--floating::after {
+    display: none;
 }
 
-.vnra__button--primary {
-	width: 2.7rem;
-	height: 2.7rem;
-	background: linear-gradient(90deg, var(--vnra-blue) 0%, var(--vnra-teal) 100%);
-	border-color: transparent;
-	color: var(--vnra-black);
+.vnra.vnra.vnra--floating .vnra__listen {
+    box-shadow: 0 5px 22px rgb(0 0 0 / 18%);
 }
 
-.vnra__icon-pause {
-	display: none;
+.vnra.vnra.vnra--floating .vnra__panel {
+    max-height: min(75vh, 650px);
+    overflow-y: auto;
+    margin: 0.6rem 0 0 !important;
+    box-shadow: 0 10px 35px rgb(0 0 0 / 18%);
 }
 
-.vnra[data-playing="true"] .vnra__icon-play {
-	display: none;
+/* ------------------------------------------------------------------ */
+/* Status and loading feedback                                         */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra .vnra__status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 1.5rem;
+    margin: 0 0 0.75rem;
+    color: var(--vnra-muted);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
 }
 
-.vnra[data-playing="true"] .vnra__icon-pause {
-	display: block;
+.vnra.vnra .vnra__status-text {
+    min-width: 0;
 }
 
-.vnra__time {
-	font-size: 0.8rem;
-	font-variant-numeric: tabular-nums;
-	color: var(--vnra-text-muted);
-	white-space: nowrap;
+.vnra.vnra .vnra__status--error {
+    color: var(--vnra-error);
 }
 
-.vnra__time--current {
-	margin-left: auto;
+.vnra.vnra .vnra__spinner {
+    display: none;
+    width: 1rem;
+    height: 1rem;
+    flex: 0 0 1rem;
+    border: 2px solid var(--vnra-line);
+    border-top-color: var(--vnra-accent);
+    border-radius: 50%;
+    animation: vnra-spin 700ms linear infinite;
 }
 
-.vnra__time--duration::before {
-	content: " / ";
+.vnra.vnra[data-busy="true"] .vnra__spinner {
+    display: inline-block;
 }
 
-.vnra__options {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 1rem 1.25rem;
-	margin-top: 0.9rem;
-	padding-top: 0.9rem;
-	border-top: 1px solid var(--vnra-border);
+@keyframes vnra-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-.vnra__option {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	font-size: 0.8rem;
-	color: var(--vnra-text-muted);
+/* Model download progress. */
+.vnra.vnra .vnra__download {
+    width: 100%;
+    height: 3px;
+    margin: 0 0 0.85rem;
+    overflow: hidden;
+    background: var(--vnra-line);
+    border-radius: 999px;
 }
 
-.vnra__option select {
-	max-width: 11rem;
-	padding: 0.3rem 0.5rem;
-	border: 1px solid var(--vnra-border);
-	border-radius: 8px;
-	background: rgba(10, 14, 39, 0.35);
-	color: inherit;
-	font: inherit;
-	font-size: 0.8rem;
+.vnra.vnra .vnra__download-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--vnra-accent),
+        var(--vnra-accent-2)
+    );
+    border-radius: inherit;
+    transition: width 120ms linear;
 }
 
-.vnra__option input[type="range"] {
-	width: 6rem;
-	accent-color: var(--vnra-teal);
+/* ------------------------------------------------------------------ */
+/* Live frequency meter (JavaScript controls the bar heights)          */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra .vnra__meter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    height: 34px;
+    min-height: 34px;
+    margin: 0.25rem 0 0.85rem;
+    overflow: hidden;
 }
 
-.vnra__option output {
-	font-variant-numeric: tabular-nums;
-	min-width: 2.4rem;
+.vnra.vnra .vnra__meter span {
+    display: block;
+    flex: 1 1 0;
+    min-width: 2px;
+    max-width: 12px;
+    height: 8%;
+    min-height: 3px;
+    background: linear-gradient(
+        180deg,
+        var(--vnra-accent-2),
+        var(--vnra-accent)
+    );
+    border-radius: 999px;
+    opacity: 0.5;
+    transition:
+        height 70ms linear,
+        opacity 120ms ease;
 }
 
-/* The paragraph being read. */
+.vnra.vnra[data-playing="true"] .vnra__meter span {
+    opacity: 1;
+}
+
+/* ------------------------------------------------------------------ */
+/* Playback controls                                                   */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra .vnra__controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.vnra.vnra .vnra__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    color: var(--vnra-panel-text);
+    background: transparent;
+    border: 1px solid var(--vnra-line);
+    border-radius: 0.65rem;
+    touch-action: manipulation;
+    transition:
+        color 150ms ease,
+        background-color 150ms ease,
+        border-color 150ms ease,
+        transform 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.vnra.vnra .vnra__button:hover:not(:disabled) {
+    background: var(--vnra-surface);
+    border-color: var(--vnra-accent);
+}
+
+.vnra.vnra .vnra__button:active:not(:disabled) {
+    transform: scale(0.96);
+}
+
+.vnra.vnra .vnra__button svg {
+    display: block;
+    flex: 0 0 auto;
+}
+
+.vnra.vnra .vnra__play {
+    width: 44px;
+    height: 44px;
+    color: #ffffff;
+    background: var(--vnra-accent);
+    border: 1px solid var(--vnra-accent);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px color-mix(
+        in srgb,
+        var(--vnra-accent) 28%,
+        transparent
+    );
+}
+
+.vnra.vnra .vnra__play:hover:not(:disabled) {
+    color: #ffffff;
+    background: var(--vnra-accent);
+    border-color: var(--vnra-accent);
+    filter: brightness(1.1);
+}
+
+/* Show play when stopped/paused; pause during playback. */
+.vnra.vnra .vnra__icon-play {
+    display: block;
+}
+
+.vnra.vnra .vnra__icon-pause {
+    display: none;
+}
+
+.vnra.vnra[data-playing="true"] .vnra__icon-play {
+    display: none;
+}
+
+.vnra.vnra[data-playing="true"] .vnra__icon-pause {
+    display: block;
+}
+
+.vnra.vnra .vnra__time {
+    color: var(--vnra-muted);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.vnra.vnra .vnra__time--current {
+    margin-left: auto;
+}
+
+.vnra.vnra .vnra__time--duration {
+    min-width: 2.5rem;
+    text-align: right;
+}
+
+/* ------------------------------------------------------------------ */
+/* Seek slider (fill follows --vnra-progress, set by the JS)           */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra .vnra__seek-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    min-width: 0;
+    margin: 0.25rem 0 0.85rem;
+}
+
+.vnra.vnra .vnra__seek {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: block;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    height: 6px !important;
+    margin: 0.6rem 0;
+    padding: 0 !important;
+    background: linear-gradient(
+        to right,
+        var(--vnra-accent) 0,
+        var(--vnra-accent) var(--vnra-progress, 0%),
+        var(--vnra-line) var(--vnra-progress, 0%),
+        var(--vnra-line) 100%
+    ) !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    accent-color: var(--vnra-accent);
+}
+
+.vnra.vnra .vnra__seek::-webkit-slider-runnable-track {
+    height: 6px;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+}
+
+.vnra.vnra .vnra__seek::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 20px;
+    height: 20px;
+    margin-top: -7px;
+    background: var(--vnra-accent) !important;
+    border: 2px solid var(--vnra-panel-bg) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 1px var(--vnra-accent) !important;
+    touch-action: manipulation;
+}
+
+.vnra.vnra .vnra__seek::-moz-range-track {
+    height: 6px;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+}
+
+.vnra.vnra .vnra__seek::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--vnra-accent) !important;
+    border: 2px solid var(--vnra-panel-bg) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 1px var(--vnra-accent) !important;
+    touch-action: manipulation;
+}
+
+.vnra.vnra .vnra__seek-count {
+    flex: 0 0 auto;
+    color: var(--vnra-muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Voice, speed and volume                                             */
+/* ------------------------------------------------------------------ */
+
+.vnra.vnra .vnra__options {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, 150px), 1fr)
+    );
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--vnra-line);
+}
+
+.vnra.vnra .vnra__option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+    color: var(--vnra-panel-text);
+    font-size: 0.85rem;
+}
+
+.vnra.vnra .vnra__option-label {
+    color: var(--vnra-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+/*
+ * Dropdown.
+ * Solid background and text colour from the resolved theme, forced with
+ * !important and -webkit-text-fill-color so a theme's dark select style
+ * cannot leave dark text on a dark box. The arrow is a CSS gradient in
+ * the text colour. color-scheme makes the open list follow the theme.
+ */
+.vnra.vnra .vnra__option select,
+.vnra.vnra select.vnra__voice {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    margin: 0;
+    padding: 0.55rem 2.25rem 0.55rem 0.75rem !important;
+    color: var(--vnra-control-text) !important;
+    -webkit-text-fill-color: var(--vnra-control-text) !important;
+    background-color: var(--vnra-control-bg) !important;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--vnra-control-text) 50%),
+        linear-gradient(135deg, var(--vnra-control-text) 50%, transparent 50%) !important;
+    background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 13px) 50% !important;
+    background-size: 5px 5px, 5px 5px !important;
+    background-repeat: no-repeat !important;
+    border: 1px solid var(--vnra-line) !important;
+    border-radius: 0.6rem !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    cursor: pointer;
+    color-scheme: inherit;
+    text-overflow: ellipsis;
+}
+
+.vnra.vnra .vnra__option select:hover {
+    border-color: var(--vnra-accent) !important;
+}
+
+.vnra.vnra .vnra__option select:focus {
+    border-color: var(--vnra-accent) !important;
+    outline: 2px solid color-mix(
+        in srgb,
+        var(--vnra-accent) 30%,
+        transparent
+    );
+    outline-offset: 1px;
+}
+
+.vnra.vnra .vnra__option select option,
+.vnra.vnra .vnra__option select optgroup {
+    color: var(--vnra-control-text) !important;
+    background-color: var(--vnra-control-bg) !important;
+}
+
+/* Speed / volume sliders. */
+.vnra.vnra .vnra__option input[type="range"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 6px !important;
+    margin: 0.75rem 0;
+    padding: 0 !important;
+    background: var(--vnra-line) !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    accent-color: var(--vnra-accent);
+}
+
+.vnra.vnra .vnra__option input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+}
+
+.vnra.vnra .vnra__option input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 20px;
+    height: 20px;
+    margin-top: -7px;
+    background: var(--vnra-accent) !important;
+    border: 2px solid var(--vnra-panel-bg) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 1px var(--vnra-accent) !important;
+    touch-action: manipulation;
+}
+
+.vnra.vnra .vnra__option input[type="range"]::-moz-range-track {
+    height: 6px;
+    background: var(--vnra-line);
+    border: 0;
+    border-radius: 999px;
+}
+
+.vnra.vnra .vnra__option input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--vnra-accent) !important;
+    border: 2px solid var(--vnra-panel-bg) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 1px var(--vnra-accent) !important;
+    touch-action: manipulation;
+}
+
+.vnra.vnra .vnra__speed-value {
+    color: var(--vnra-muted);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ */
+/* Off-screen text. Themes usually ship .screen-reader-text; this is a  */
+/* fallback for the ones that do not, so a "Jump to a paragraph" label  */
+/* does not leak visibly into the page.                                */
+/* ------------------------------------------------------------------ */
+
+.vnra .screen-reader-text,
+.vnra.vnra .screen-reader-text {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Paragraph highlighting while spoken                                 */
+/* ------------------------------------------------------------------ */
 
 .vnra-para {
-	cursor: pointer;
-	transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	border-radius: 6px;
+    border-radius: 0.2rem;
+    transition:
+        background-color 180ms ease,
+        box-shadow 180ms ease;
 }
 
-.vnra-para:hover {
-	background: rgba(41, 121, 255, 0.08);
+.vnra-para.vnra-para--reading {
+    background: color-mix(
+        in srgb,
+        var(--vnra-accent) 10%,
+        transparent
+    );
+    box-shadow: 0 0 0 2px color-mix(
+        in srgb,
+        var(--vnra-accent) 10%,
+        transparent
+    );
 }
 
-.vnra-para--reading {
-	background: rgba(0, 194, 168, 0.14);
-	box-shadow: inset 3px 0 0 var(--vnra-teal);
-}
-
-/* The floating variant. */
-
-.vnra--floating {
-	position: fixed;
-	right: 1.25rem;
-	bottom: 1.25rem;
-	margin: 0;
-	z-index: 9999;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 0.6rem;
-}
-
-.vnra--floating .vnra__panel {
-	order: -1;
-	background: rgba(10, 14, 39, 0.94);
-	border-color: rgba(255, 255, 255, 0.14);
-	box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
-}
-
-.vnra--floating .vnra__status,
-.vnra--floating .vnra__seek-count,
-.vnra--floating .vnra__time {
-	color: rgba(244, 244, 244, 0.8);
-}
-
-.vnra--floating .vnra__listen {
-	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-}
-
-/* A stand-in, in case the theme does not ship one. */
-.vnra .screen-reader-text {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border: 0;
-}
+/* ------------------------------------------------------------------ */
+/* Small screens                                                       */
+/* ------------------------------------------------------------------ */
 
 @media (max-width: 480px) {
-	.vnra__options {
-		gap: 0.75rem;
-	}
+    .vnra.vnra .vnra__panel {
+        padding: 0.9rem;
+    }
 
-	.vnra__option input[type="range"] {
-		width: 4.5rem;
-	}
+    .vnra.vnra .vnra__controls {
+        gap: 0.5rem;
+    }
 
-	.vnra__seek-count {
-		display: none;
-	}
+    .vnra.vnra .vnra__button {
+        width: 44px;
+        height: 44px;
+    }
+
+    .vnra.vnra .vnra__play {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* Easier to hit with a thumb on a narrow screen. */
+    .vnra.vnra .vnra__listen {
+        width: 100%;
+    }
+
+    .vnra.vnra .vnra__time--current {
+        margin-left: 0;
+    }
+
+    .vnra.vnra.vnra--floating {
+        right: max(0.6rem, env(safe-area-inset-right));
+        bottom: max(0.6rem, env(safe-area-inset-bottom));
+        width: min(390px, calc(100vw - 1.2rem));
+    }
 }
 
+/* ------------------------------------------------------------------ */
+/* Reduced motion                                                      */
+/* ------------------------------------------------------------------ */
+
 @media (prefers-reduced-motion: reduce) {
-	.vnra__listen,
-	.vnra__button,
-	.vnra-para {
-		transition: none;
-	}
+    .vnra *,
+    .vnra *::before,
+    .vnra *::after,
+    .vnra-para {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
 }

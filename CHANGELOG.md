@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.2
+
+Appearance settings, theme integration and mobile.
+
+### Added
+- **Style setting:** auto (follows the site theme), light or dark. A pinned mode overrides the theme entirely.
+- **Accent and accent-2 colours:** the play button, the paragraph slider's filled track, the highlight ring and the live level meter pick them up.
+- **Theme resolver:** the reader measures the page behind the player — composited backgrounds, gradient stops and all — and declares which palette the theme is actually in. A theme that writes its text with an alpha no longer dissolves the muted "Paragraph X of Y" text into nothing.
+- **Loading spinner and determinate download bar:** the spinner shows while the model is on its way; the bar shows the download progress fed from the fetch progress.
+- **Live level meter:** twelve bars driven by an `AnalyserNode` tapped in-chain while the audio plays.
+- **Mobile:** full-width listen button on small screens, 44 px touch targets and slider thumbs sized for a thumb.
+
+### Fixed
+- Custom accent colours lost to `.vnra.vnra` specificity; the inline stylesheet now uses the same doubled selector.
+- The screen-reader-text fallback for "Jump to a paragraph" compiled into the stylesheet; the stray brace from the earlier edit is gone.
+
 ## 0.1.1
 Two bugs, both found by running the plugin in real WordPress rather than against the test
 stand-in.

@@ -33,6 +33,10 @@ $config['wasmUrl']     = '/plugin/?vnra_wasm=relaxed';
 $config['simdWasmUrl'] = '/plugin/?vnra_wasm=simd';
 $config['workerUrl']   = '/plugin/assets/vendor/phonon-tts/worker.js';
 
+// The site's accent colours ride on an inline stylesheet, as they do on a real page.
+$plugin->enqueue_assets();
+$inline = implode( "\n", $GLOBALS['vnra_hooks']['inline_styles']['vnra-reader'] ?? array() );
+
 $dir = __DIR__ . '/fixtures';
 if ( ! is_dir( $dir ) ) {
 	mkdir( $dir, 0755, true );
@@ -41,6 +45,7 @@ if ( ! is_dir( $dir ) ) {
 $html = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n"
 	. "<title>Reader test</title>\n"
 	. "<link rel=\"stylesheet\" href=\"/plugin/assets/css/reader.css\">\n"
+	. ( '' !== $inline ? "<style>" . $inline . "</style>\n" : '' )
 	. "<script>window.voxnemesisReadAloud = " . wp_json_encode( $config ) . ";</script>\n"
 	. "</head>\n<body>\n"
 	. "<main>\n" . $rendered . "\n</main>\n"

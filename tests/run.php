@@ -96,6 +96,30 @@ check( array( 'post', 'page' ) === $clean['post_types'], 'only real post types a
 $clean = $plugin->sanitize_options( array( 'post_types' => array() ) );
 check( array() === $clean['post_types'], 'unticking every post type is allowed' );
 
+echo "\nThe colours\n";
+$clean = $plugin->sanitize_options(
+	array(
+		'style'    => 'dark',
+		'accent'   => '#FF0000',
+		'accent_2' => 'javascript:alert(1)',
+	)
+);
+check( 'dark' === $clean['style'], 'a colour mode is kept' );
+check( '#ff0000' === $clean['accent'], 'a hex colour is lowercased' );
+check( '#00c2a8' === $clean['accent_2'], 'anything that is not a hex colour falls back' );
+
+check( 'auto' === $plugin->sanitize_options( array( 'style' => 'purple' ) )['style'], 'an unknown mode falls back to auto' );
+check( '' === VoxNemesis_Read_Aloud_Settings::sanitize_colour( 'red; } body { display:none' ), 'a stylesheet injection is not a colour' );
+
+$GLOBALS['vnra_options']['vnra_options'] = array( 'accent' => '#123456' );
+$plugin->settings->flush();
+check( '#123456' === $plugin->settings->accent(), 'the stored accent is read back' );
+check( '#00c2a8' === $plugin->settings->accent_2(), 'the untouched accent keeps its default' );
+check( false !== strpos( $plugin->inline_styles(), '--vnra-accent:#123456' ), 'the accent reaches the stylesheet' );
+
+$plugin->settings->flush();
+$GLOBALS['vnra_options']['vnra_options'] = array();
+
 echo "\nThe content filter\n";
 $content = <<<HTML
 <p>On the morning of Wednesday 21 October 2026, something happened.</p>
@@ -117,6 +141,10 @@ check( false === strpos( $rendered, 'application/json' ), 'the text is not copie
 check( false !== strpos( $rendered, 'vnra__seek' ), 'the paragraph slider is in the markup' );
 check( false !== strpos( $rendered, 'vnra__prev' ) && false !== strpos( $rendered, 'vnra__next' ), 'the skip controls are in the markup' );
 check( false !== strpos( $rendered, 'vnra__volume' ), 'the volume control is in the markup' );
+check( false !== strpos( $rendered, 'vnra__spinner' ), 'the loading spinner is in the markup' );
+check( false !== strpos( $rendered, 'vnra__download-fill' ), 'the download bar is in the markup' );
+check( 12 === substr_count( $rendered, '<span></span>' ) || false !== strpos( $rendered, 'vnra__meter' ), 'the level meter is in the markup' );
+check( false !== strpos( $rendered, 'data-vnra-style="auto"' ), 'the colour mode defaults to following the theme' );
 
 echo "\nWhere it goes\n";
 
@@ -177,6 +205,16 @@ $plugin->player->reset();
 $GLOBALS['vnra_is_singular'] = false;
 check( '' === do_shortcode_tag( 'voxnemesis_read_aloud' ) || true, 'the shortcode is reachable' );
 $GLOBALS['vnra_is_singular'] = true;
+
+echo "\nThe pinned colour mode\n";
+with_settings( array( 'style' => 'dark' ) );
+$pinned = $plugin->player->filter_content( $content );
+check( false !== strpos( $pinned, 'data-vnra-style="dark"' ), 'a pinned mode reaches the player' );
+
+with_settings( array( 'style' => 'light', 'accent' => '#aa0000' ) );
+$pinned = $plugin->player->filter_content( $content );
+check( false !== strpos( $pinned, 'data-vnra-style="light"' ), 'the other mode reaches it too' );
+check( false !== strpos( $plugin->inline_styles(), '--vnra-accent:#aa0000' ), 'and its accent reaches the stylesheet' );
 
 with_settings( array() );
 

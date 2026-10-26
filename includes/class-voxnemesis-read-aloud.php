@@ -163,6 +163,14 @@ final class VoxNemesis_Read_Aloud {
 		);
 
 		add_settings_field(
+			'vnra_appearance',
+			__( 'Colours', 'voxnemesis-read-aloud' ),
+			array( $this, 'render_field_appearance' ),
+			'vnra-settings',
+			'vnra_general'
+		);
+
+		add_settings_field(
 			'vnra_options_ui',
 			__( 'Reader controls', 'voxnemesis-read-aloud' ),
 			array( $this, 'render_field_options_ui' ),
@@ -332,6 +340,40 @@ final class VoxNemesis_Read_Aloud {
 	}
 
 	/**
+	 * How the player takes its colours.
+	 *
+	 * @return void
+	 */
+	public function render_field_appearance() {
+		?>
+		<select name="vnra_options[style]">
+			<?php foreach ( $this->settings->styles() as $value => $label ) : ?>
+				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $this->settings->style(), $value ); ?>>
+					<?php echo esc_html( $label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<p class="description">
+			<?php esc_html_e( 'Follow the theme is the right answer unless your theme does something unusual. The player takes its text, borders and background from the page, so a light theme gives it dark text and a dark theme gives it light text, and a theme with its own light/dark switch carries the player with it.', 'voxnemesis-read-aloud' ); ?>
+		</p>
+
+		<p style="margin-top:12px;">
+			<label style="margin-right:18px;">
+				<?php esc_html_e( 'Accent', 'voxnemesis-read-aloud' ); ?><br />
+				<input type="color" name="vnra_options[accent]" value="<?php echo esc_attr( $this->settings->accent() ); ?>" />
+			</label>
+			<label>
+				<?php esc_html_e( 'Second accent', 'voxnemesis-read-aloud' ); ?><br />
+				<input type="color" name="vnra_options[accent_2]" value="<?php echo esc_attr( $this->settings->accent_2() ); ?>" />
+			</label>
+		</p>
+		<p class="description">
+			<?php esc_html_e( 'The two colours of the gradient: the play button, the progress fill and the level meter. The defaults are the NemesisNet blue and teal.', 'voxnemesis-read-aloud' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
 	 * Which reader controls to show.
 	 *
 	 * @return void
@@ -428,7 +470,47 @@ final class VoxNemesis_Read_Aloud {
 			$clean['position'] = $input['position'];
 		}
 
+		if ( isset( $input['style'] ) && array_key_exists( $input['style'], $this->settings->styles() ) ) {
+			$clean['style'] = $input['style'];
+		}
+
+		foreach ( array( 'accent', 'accent_2' ) as $key ) {
+			if ( ! isset( $input[ $key ] ) ) {
+				continue;
+			}
+			$colour = VoxNemesis_Read_Aloud_Settings::sanitize_colour( $input[ $key ] );
+			if ( '' !== $colour ) {
+				$clean[ $key ] = $colour;
+			}
+		}
+
 		return $clean;
+	}
+
+	/**
+	 * The site's two accent colours, as custom properties.
+	 *
+	 * Only the accents are printed. Every neutral is derived in the stylesheet from the
+	 * page's own text colour, so there is nothing here to get out of step with the theme.
+	 *
+	 * @return string
+	 */
+	public function inline_styles() {
+		$accent   = VoxNemesis_Read_Aloud_Settings::sanitize_colour( $this->settings->accent() );
+		$accent_2 = VoxNemesis_Read_Aloud_Settings::sanitize_colour( $this->settings->accent_2() );
+
+		if ( '' === $accent || '' === $accent_2 ) {
+			return '';
+		}
+
+		// The stylesheet declares the default accents on the doubled selector
+		// (.vnra.vnra) so theme rules cannot knock them over. These custom values
+		// have to match that specificity or the owner's colours never win.
+		return sprintf(
+			'.vnra.vnra,.vnra-para{--vnra-accent:%1$s;--vnra-accent-2:%2$s;}',
+			$accent,
+			$accent_2
+		);
 	}
 
 	/**
@@ -517,6 +599,11 @@ final class VoxNemesis_Read_Aloud {
 			array(),
 			VNRA_VERSION
 		);
+
+		$inline = $this->inline_styles();
+		if ( '' !== $inline ) {
+			wp_add_inline_style( 'vnra-reader', $inline );
+		}
 
 		wp_enqueue_script(
 			'vnra-reader',

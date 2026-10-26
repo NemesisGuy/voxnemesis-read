@@ -238,6 +238,10 @@ function wp_enqueue_script( ...$args ) {
 	$GLOBALS['vnra_enqueued'][ $args[0] ]   = true;
 }
 
+function wp_add_inline_style( $handle, $data ) {
+	$GLOBALS['vnra_hooks']['inline_styles'][ $handle ][] = $data;
+}
+
 function wp_script_is( $handle, $status = 'enqueued' ) {
 	return ! empty( $GLOBALS['vnra_enqueued'][ $handle ] );
 }

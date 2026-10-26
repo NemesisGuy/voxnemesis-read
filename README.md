@@ -17,6 +17,8 @@ Your server serves a player, a few assets and, if you host your own model, a sta
 - The paragraph being read is marked in the page, and clicking any paragraph starts from there.
 - A voice picker (about a hundred voices), a speed control and a volume control.
 - A clock, and a "Paragraph 3 of 12" readout.
+- A live level meter while it reads, and a download bar while the model arrives.
+- Light, dark or auto styling, pulled from the theme with an accent colour setting.
 
 Each of those controls can be switched off on the settings screen, so a site can keep the
 player to a bare play button if it wants one.
@@ -30,6 +32,16 @@ player to a bare play button if it wants one.
   - the default voice and speed;
   - which controls the reader sees.
 - **A model setting.** The default is the public Phonon 31m checkpoint, which speaks English. For another language, host the checkpoint yourself and point the plugin at it.
+
+## Appearance settings
+
+- **Style:** auto (follows the site theme), light or dark. Pinned modes override the theme entirely.
+- **Accent colour:** the play button, the paragraph slider's filled track and the highlight ring.
+- **Accent 2 colour:** the secondary colour in gradients and the live level meter.
+
+The player measures what the theme actually paints behind it — composited backgrounds, gradient stops and all — and picks the matching palette. A theme that writes its text with a transparency no longer dissolves the muted "Paragraph X of Y" text into nothing. Borders, the clock and the paragraph highlight stay readable on light, dark, or semi-transparent themes.
+
+The player is built for small screens: a full-width listen button, 44 px touch targets and slider thumbs sized for a thumb.
 
 ## Where the player goes
 
