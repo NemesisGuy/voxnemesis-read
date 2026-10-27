@@ -61,7 +61,7 @@ const svg = {
 };
 
 const PAGE = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><title>VoxNemesis Read</title>
+<html lang="en"><head><meta charset="UTF-8"><title>VoxNemasis Read</title>
 <link rel="stylesheet" href="/plugin/assets/css/reader.css">
 <style>
   body { margin:0; background:#0a0e27; color:#f4f4f4;
@@ -116,7 +116,7 @@ const PAGE = `<!DOCTYPE html>
   </div>
 </article>
 </div>
-<script>window.voxnemesisRead = ${JSON.stringify(CONFIG)};</script>
+<script>window.voxnemasisRead = ${JSON.stringify(CONFIG)};</script>
 <script type="module" src="/plugin/assets/js/reader.js"></script>
 </body></html>`;
 

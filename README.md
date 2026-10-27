@@ -1,4 +1,4 @@
-# VoxNemesis Read
+# VoxNemasis Read
 
 > Your articles. Your browser. Your voice.
 
@@ -55,7 +55,7 @@ The player is built for small screens: a full-width listen button, 44 px touch t
 | A floating button, bottom right | Fixed to the corner, panel opens above it |
 | Only where I put the shortcode | Nothing is added automatically |
 
-The shortcode is `[voxnemesis_read]`. Use it when the theme puts the content somewhere unexpected, or when you want the button halfway down an article.
+The shortcode is `[voxnemasis_read]`. Use it when the theme puts the content somewhere unexpected, or when you want the button halfway down an article.
 
 ## Hosting your own model
 
@@ -83,11 +83,11 @@ The 40m checkpoints are CC BY-NC 4.0. The 31m one is Apache-2.0.
 
 The plugin generates on the CPU. The current Phonon runtime's WebGPU path computes different numbers from the CPU path — it does not quantise the activations the way the CPU does — and the model is calibrated against the CPU's. The result on WebGPU is an utterance roughly twice as long as it should be, and noise from the second paragraph on.
 
-The CPU path is the one the native runtimes use and the one the model was built for, so that is what the plugin uses. The fix is upstream, in [`gradium-ai/xn`](https://github.com/gradium-ai/xn); see [xn#123](https://github.com/NemesisGuy/xn/issues/123) and [xn-ptts#248](https://github.com/gradium-ai/xn-ptts/issues/248).
+The CPU path is the one the native runtimes use and the one the model was built for, so that is what the plugin uses. The fix is upstream, in [`gradium-ai/xn`](https://github.com/gradium-ai/xn); see [xn#123](https://github.com/NemasisGuy/xn/issues/123) and [xn-ptts#248](https://github.com/gradium-ai/xn-ptts/issues/248).
 
 ## Installing
 
-1. Copy the directory into `wp-content/plugins/voxnemesis-read`, or upload the zip from the plugins screen.
+1. Copy the directory into `wp-content/plugins/voxnemasis-read`, or upload the zip from the plugins screen.
 2. Activate it.
 3. Go to **Settings, Read**. The player is on by default.
 
@@ -130,13 +130,13 @@ the test that matters, and it is the one to repeat before a release.
 ## The layout
 
 ```
-voxnemesis-read.php     the plugin header and the bootstrap
+voxnemasis-read.php     the plugin header and the bootstrap
 includes/
-  class-voxnemesis-read.php  hooks, assets, the wasm endpoint, the settings
+  class-voxnemasis-read.php  hooks, assets, the wasm endpoint, the settings
   class-settings.php                reading and sanitising the options
   class-player.php                  the markup, the paragraph markers, the shortcode
 assets/
-  css/reader.css                    the styles, on the NemesisNet tokens
+  css/reader.css                    the styles, on the NemasisNet tokens
   js/reader.js                      the reader, as an ES module
   vendor/phonon-tts/                the Phonon runtime, vendored
 tests/                            the stand-in, the fixture and the browser tests
@@ -144,13 +144,13 @@ tests/                            the stand-in, the fixture and the browser test
 
 ### The wasm and its content type
 
-A browser refuses to compile a WebAssembly module that was not served as `application/wasm`, and not every host is configured for that. The plugin therefore serves the wasm itself, from `includes/class-voxnemesis-read.php`, with the right header and a long cache lifetime. The rest of the assets are served by the web server as usual.
+A browser refuses to compile a WebAssembly module that was not served as `application/wasm`, and not every host is configured for that. The plugin therefore serves the wasm itself, from `includes/class-voxnemasis-read.php`, with the right header and a long cache lifetime. The rest of the assets are served by the web server as usual.
 
 ## Links
 
-- **NemesisNet** — [nemesisnet.co.za](https://nemesisnet.co.za)
-- **Brand guide** — [brand.nemesisnet.co.za](https://brand.nemesisnet.co.za)
-- **GitHub** — [NemesisGuy/voxnemesis-read](https://github.com/NemesisGuy/voxnemesis-read)
+- **NemasisNet** — [nemasisnet.co.za](https://nemasisnet.co.za)
+- **Brand guide** — [brand.nemasisnet.co.za](https://brand.nemasisnet.co.za)
+- **GitHub** — [NemasisGuy/voxnemasis-read](https://github.com/NemasisGuy/voxnemasis-read)
 
 ## Licence
 

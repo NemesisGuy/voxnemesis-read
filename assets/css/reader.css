@@ -1,5 +1,5 @@
 /*
- * VoxNemesis Read
+ * VoxNemasis Read
  * Theme-aware player. Selectors are doubled (.vnra.vnra) and the contested
  * properties use !important so theme-level select / range / card styles
  * cannot override them.

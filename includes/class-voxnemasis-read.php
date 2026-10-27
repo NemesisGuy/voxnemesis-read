@@ -2,7 +2,7 @@
 /**
  * The plugin: hooks, assets, the wasm endpoint and the settings.
  *
- * @package voxnemesis_read
+ * @package voxnemasis_read
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,39 +10,39 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * VoxNemesis Read.
+ * VoxNemasis Read.
  *
  * The speech is generated in the reader's own browser, by the Phonon model running in
  * WebAssembly. Nothing is sent to this site, and nothing is sent to a third party either:
  * the model weights are fetched once from a public host and kept in the browser's cache.
  */
-final class voxnemesis_read {
+final class voxnemasis_read {
 
 	/**
 	 * The one instance.
 	 *
-	 * @var voxnemesis_read|null
+	 * @var voxnemasis_read|null
 	 */
 	private static $instance = null;
 
 	/**
 	 * The settings.
 	 *
-	 * @var voxnemesis_read_Settings
+	 * @var voxnemasis_read_Settings
 	 */
 	public $settings;
 
 	/**
 	 * The front end.
 	 *
-	 * @var voxnemesis_read_Player
+	 * @var voxnemasis_read_Player
 	 */
 	public $player;
 
 	/**
 	 * The instance.
 	 *
-	 * @return voxnemesis_read
+	 * @return voxnemasis_read
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -57,8 +57,8 @@ final class voxnemesis_read {
 	 * @return void
 	 */
 	public function boot() {
-		$this->settings = new voxnemesis_read_Settings();
-		$this->player   = new voxnemesis_read_Player( $this->settings );
+		$this->settings = new voxnemasis_read_Settings();
+		$this->player   = new voxnemasis_read_Player( $this->settings );
 
 		// The Settings API lives in wp-admin/includes, which the front end never loads.
 		// Registering on init fataled the whole site: add_settings_section() does not exist
@@ -75,7 +75,7 @@ final class voxnemesis_read {
 		add_filter( 'the_content', array( $this->player, 'filter_content' ), 999 );
 		add_filter( 'script_loader_tag', array( $this, 'module_script_tag' ), 10, 3 );
 
-		add_shortcode( 'voxnemesis_read', array( $this->player, 'shortcode' ) );
+		add_shortcode( 'voxnemasis_read', array( $this->player, 'shortcode' ) );
 	}
 
 	/**
@@ -109,14 +109,14 @@ final class voxnemesis_read {
 
 		add_settings_section(
 			'vnra_general',
-			__( 'Read', 'voxnemesis-read' ),
+			__( 'Read', 'voxnemasis-read' ),
 			array( $this, 'render_section_intro' ),
 			'vnra-settings'
 		);
 
 		add_settings_field(
 			'vnra_enabled',
-			__( 'Enable the player', 'voxnemesis-read' ),
+			__( 'Enable the player', 'voxnemasis-read' ),
 			array( $this, 'render_field_enabled' ),
 			'vnra-settings',
 			'vnra_general'
@@ -124,7 +124,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_post_types',
-			__( 'Show on', 'voxnemesis-read' ),
+			__( 'Show on', 'voxnemasis-read' ),
 			array( $this, 'render_field_post_types' ),
 			'vnra-settings',
 			'vnra_general'
@@ -132,7 +132,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_model',
-			__( 'Model', 'voxnemesis-read' ),
+			__( 'Model', 'voxnemasis-read' ),
 			array( $this, 'render_field_model' ),
 			'vnra-settings',
 			'vnra_general'
@@ -140,7 +140,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_voice',
-			__( 'Voice', 'voxnemesis-read' ),
+			__( 'Voice', 'voxnemasis-read' ),
 			array( $this, 'render_field_voice' ),
 			'vnra-settings',
 			'vnra_general'
@@ -148,7 +148,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_speed',
-			__( 'Speed', 'voxnemesis-read' ),
+			__( 'Speed', 'voxnemasis-read' ),
 			array( $this, 'render_field_speed' ),
 			'vnra-settings',
 			'vnra_general'
@@ -156,7 +156,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_position',
-			__( 'Where the button goes', 'voxnemesis-read' ),
+			__( 'Where the button goes', 'voxnemasis-read' ),
 			array( $this, 'render_field_position' ),
 			'vnra-settings',
 			'vnra_general'
@@ -164,7 +164,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_appearance',
-			__( 'Colours', 'voxnemesis-read' ),
+			__( 'Colours', 'voxnemasis-read' ),
 			array( $this, 'render_field_appearance' ),
 			'vnra-settings',
 			'vnra_general'
@@ -172,7 +172,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_options_ui',
-			__( 'Reader controls', 'voxnemesis-read' ),
+			__( 'Reader controls', 'voxnemasis-read' ),
 			array( $this, 'render_field_options_ui' ),
 			'vnra-settings',
 			'vnra_general'
@@ -180,7 +180,7 @@ final class voxnemesis_read {
 
 		add_settings_field(
 			'vnra_show_credit',
-			__( 'Credit', 'voxnemesis-read' ),
+			__( 'Credit', 'voxnemasis-read' ),
 			array( $this, 'render_field_show_credit' ),
 			'vnra-settings',
 			'vnra_general'
@@ -194,8 +194,8 @@ final class voxnemesis_read {
 	 */
 	public function add_settings_page() {
 		add_options_page(
-			__( 'VoxNemesis Read', 'voxnemesis-read' ),
-			__( 'Read', 'voxnemesis-read' ),
+			__( 'VoxNemasis Read', 'voxnemasis-read' ),
+			__( 'Read', 'voxnemasis-read' ),
 			'manage_options',
 			'vnra-settings',
 			array( $this, 'render_settings_page' )
@@ -213,9 +213,9 @@ final class voxnemesis_read {
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'VoxNemesis Read', 'voxnemesis-read' ); ?></h1>
+			<h1><?php esc_html_e( 'VoxNemasis Read', 'voxnemasis-read' ); ?></h1>
 			<p class="description">
-				<?php esc_html_e( 'The speech is generated in the reader\'s browser. This site serves the player and, at most, a model file. It never runs the model and never sees the audio.', 'voxnemesis-read' ); ?>
+				<?php esc_html_e( 'The speech is generated in the reader\'s browser. This site serves the player and, at most, a model file. It never runs the model and never sees the audio.', 'voxnemasis-read' ); ?>
 			</p>
 			<form action="options.php" method="post">
 				<?php
@@ -227,10 +227,10 @@ final class voxnemesis_read {
 
 			<hr style="margin: 2rem 0 1rem; border: none; border-top: 1px solid #ccd0d4;" />
 			<p style="color: #787c82; font-size: 13px; margin: 0;">
-				<strong>VoxNemesis Read</strong> <?php echo esc_html( VNRA_VERSION ); ?>
-				&middot; Made by <a href="<?php echo esc_url( VNRA_CREDIT_URL ); ?>" target="_blank" rel="noopener">NemesisNet</a>
-				&middot; <a href="https://github.com/NemesisGuy/voxnemesis-read" target="_blank" rel="noopener">Documentation</a>
-				&middot; <a href="https://nemesisnet.co.za" target="_blank" rel="noopener">Support</a>
+				<strong>VoxNemasis Read</strong> <?php echo esc_html( VNRA_VERSION ); ?>
+				&middot; Made by <a href="<?php echo esc_url( VNRA_CREDIT_URL ); ?>" target="_blank" rel="noopener">NemasisNet</a>
+				&middot; <a href="https://github.com/NemasisGuy/voxnemasis-read" target="_blank" rel="noopener">Documentation</a>
+				&middot; <a href="https://nemasisnet.co.za" target="_blank" rel="noopener">Support</a>
 			</p>
 		</div>
 		<?php
@@ -244,10 +244,10 @@ final class voxnemesis_read {
 	public function render_section_intro() {
 		?>
 		<p>
-			<?php esc_html_e( 'The default model is the public Phonon 31m checkpoint, which speaks English. It is about 64 MB and is downloaded once per browser, then kept in the reader\'s cache.', 'voxnemesis-read' ); ?>
+			<?php esc_html_e( 'The default model is the public Phonon 31m checkpoint, which speaks English. It is about 64 MB and is downloaded once per browser, then kept in the reader\'s cache.', 'voxnemasis-read' ); ?>
 		</p>
 		<p>
-			<?php esc_html_e( 'For another language, host the checkpoint yourself and point the model setting at it. The files are static; nothing on this site computes anything.', 'voxnemesis-read' ); ?>
+			<?php esc_html_e( 'For another language, host the checkpoint yourself and point the model setting at it. The files are static; nothing on this site computes anything.', 'voxnemasis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -266,7 +266,7 @@ final class voxnemesis_read {
 				value="1"
 				<?php checked( $this->settings->enabled() ); ?>
 			/>
-			<?php esc_html_e( 'Show the listen button on posts and pages', 'voxnemesis-read' ); ?>
+			<?php esc_html_e( 'Show the listen button on posts and pages', 'voxnemasis-read' ); ?>
 		</label>
 		<?php
 	}
@@ -285,7 +285,7 @@ final class voxnemesis_read {
 			value="<?php echo esc_attr( $this->settings->model() ); ?>"
 		/>
 		<p class="description">
-			<?php esc_html_e( 'A Hugging Face repo as hf://owner/name@revision, or the base URL of a checkpoint you host, ending in a slash.', 'voxnemesis-read' ); ?>
+			<?php esc_html_e( 'A Hugging Face repo as hf://owner/name@revision, or the base URL of a checkpoint you host, ending in a slash.', 'voxnemasis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -305,7 +305,7 @@ final class voxnemesis_read {
 			placeholder="Easton"
 		/>
 		<p class="description">
-			<?php esc_html_e( 'A name from the voice catalog, or the checkpoint\'s own default. The catalog has about a hundred voices.', 'voxnemesis-read' ); ?>
+			<?php esc_html_e( 'A name from the voice catalog, or the checkpoint\'s own default. The catalog has about a hundred voices.', 'voxnemasis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -347,8 +347,8 @@ final class voxnemesis_read {
 			<?php
 			printf(
 				/* translators: %s: the shortcode. */
-				esc_html__( 'For the last option, place %s in the post, or use a block that runs shortcodes.', 'voxnemesis-read' ),
-				'<code>[voxnemesis_read]</code>'
+				esc_html__( 'For the last option, place %s in the post, or use a block that runs shortcodes.', 'voxnemasis-read' ),
+				'<code>[voxnemasis_read]</code>'
 			);
 			?>
 		</p>
@@ -370,21 +370,21 @@ final class voxnemesis_read {
 			<?php endforeach; ?>
 		</select>
 		<p class="description">
-			<?php esc_html_e( 'Follow the theme is the right answer unless your theme does something unusual. The player takes its text, borders and background from the page, so a light theme gives it dark text and a dark theme gives it light text, and a theme with its own light/dark switch carries the player with it.', 'voxnemesis-read' ); ?>
+			<?php esc_html_e( 'Follow the theme is the right answer unless your theme does something unusual. The player takes its text, borders and background from the page, so a light theme gives it dark text and a dark theme gives it light text, and a theme with its own light/dark switch carries the player with it.', 'voxnemasis-read' ); ?>
 		</p>
 
 		<p style="margin-top:12px;">
 			<label style="margin-right:18px;">
-				<?php esc_html_e( 'Accent', 'voxnemesis-read' ); ?><br />
+				<?php esc_html_e( 'Accent', 'voxnemasis-read' ); ?><br />
 				<input type="color" name="vnra_options[accent]" value="<?php echo esc_attr( $this->settings->accent() ); ?>" />
 			</label>
 			<label>
-				<?php esc_html_e( 'Second accent', 'voxnemesis-read' ); ?><br />
+				<?php esc_html_e( 'Second accent', 'voxnemasis-read' ); ?><br />
 				<input type="color" name="vnra_options[accent_2]" value="<?php echo esc_attr( $this->settings->accent_2() ); ?>" />
 			</label>
 		</p>
 		<p class="description">
-			<?php esc_html_e( 'The two colours of the gradient: the play button, the progress fill and the level meter. The defaults are the NemesisNet blue and teal.', 'voxnemesis-read' ); ?>
+			<?php esc_html_e( 'The two colours of the gradient: the play button, the progress fill and the level meter. The defaults are the NemasisNet blue and teal.', 'voxnemasis-read' ); ?>
 		</p>
 		<?php
 	}
@@ -396,12 +396,12 @@ final class voxnemesis_read {
 	 */
 	public function render_field_options_ui() {
 		$toggles = array(
-			'show_voice_picker' => __( 'Voice picker', 'voxnemesis-read' ),
-			'show_speed'        => __( 'Speed', 'voxnemesis-read' ),
-			'show_volume'       => __( 'Volume', 'voxnemesis-read' ),
-			'show_skip'         => __( 'Previous and next paragraph', 'voxnemesis-read' ),
-			'show_seek'         => __( 'Paragraph slider', 'voxnemesis-read' ),
-			'highlight'         => __( 'Highlight the paragraph being read', 'voxnemesis-read' ),
+			'show_voice_picker' => __( 'Voice picker', 'voxnemasis-read' ),
+			'show_speed'        => __( 'Speed', 'voxnemasis-read' ),
+			'show_volume'       => __( 'Volume', 'voxnemasis-read' ),
+			'show_skip'         => __( 'Previous and next paragraph', 'voxnemasis-read' ),
+			'show_seek'         => __( 'Paragraph slider', 'voxnemasis-read' ),
+			'highlight'         => __( 'Highlight the paragraph being read', 'voxnemasis-read' ),
 		);
 
 		echo '<fieldset>';
@@ -426,9 +426,9 @@ final class voxnemesis_read {
 			'<label><input type="checkbox" name="%s" value="1" %s /> %s</label>',
 			esc_attr( 'vnra_options[show_credit]' ),
 			checked( $this->settings->show_credit(), true, false ),
-			esc_html__( 'Show "Powered by VoxNemesis Read" credit under the player', 'voxnemesis-read' )
+			esc_html__( 'Show "Powered by VoxNemasis Read" credit under the player', 'voxnemasis-read' )
 		);
-		echo '<p class="description">' . esc_html__( 'Optional. Adds a small credit link below the player. Off by default. Thank you if you enable it.', 'voxnemesis-read' ) . '</p>';
+		echo '<p class="description">' . esc_html__( 'Optional. Adds a small credit link below the player. Off by default. Thank you if you enable it.', 'voxnemasis-read' ) . '</p>';
 	}
 
 	/**
@@ -448,7 +448,7 @@ final class voxnemesis_read {
 		}
 		echo '</fieldset>';
 		echo '<p class="description">';
-		esc_html_e( 'Where the listen button is added automatically.', 'voxnemesis-read' );
+		esc_html_e( 'Where the listen button is added automatically.', 'voxnemasis-read' );
 		echo '</p>';
 	}
 
@@ -509,7 +509,7 @@ final class voxnemesis_read {
 			if ( ! isset( $input[ $key ] ) ) {
 				continue;
 			}
-			$colour = voxnemesis_read_Settings::sanitize_colour( $input[ $key ] );
+			$colour = voxnemasis_read_Settings::sanitize_colour( $input[ $key ] );
 			if ( '' !== $colour ) {
 				$clean[ $key ] = $colour;
 			}
@@ -527,8 +527,8 @@ final class voxnemesis_read {
 	 * @return string
 	 */
 	public function inline_styles() {
-		$accent   = voxnemesis_read_Settings::sanitize_colour( $this->settings->accent() );
-		$accent_2 = voxnemesis_read_Settings::sanitize_colour( $this->settings->accent_2() );
+		$accent   = voxnemasis_read_Settings::sanitize_colour( $this->settings->accent() );
+		$accent_2 = voxnemasis_read_Settings::sanitize_colour( $this->settings->accent_2() );
 
 		if ( '' === $accent || '' === $accent_2 ) {
 			return '';
@@ -566,17 +566,17 @@ final class voxnemesis_read {
 			'simdWasmUrl' => $this->wasm_url( 'simd' ),
 			'workerUrl'   => $this->asset_url( 'assets/vendor/phonon-tts/worker.js' ),
 			'strings'     => array(
-				'listen'      => __( 'Listen to this post', 'voxnemesis-read' ),
-				'stop'        => __( 'Stop', 'voxnemesis-read' ),
-				'loading'     => __( 'Fetching the voice model. About 64 MB, once. Your browser keeps it afterwards.', 'voxnemesis-read' ),
-				'downloading' => __( 'Fetching the model', 'voxnemesis-read' ),
-				'ready'       => __( 'Ready to read.', 'voxnemesis-read' ),
-				'playing'     => __( 'Reading', 'voxnemesis-read' ),
-				'paused'      => __( 'Paused', 'voxnemesis-read' ),
-				'finished'    => __( 'Finished.', 'voxnemesis-read' ),
-				'paragraph'   => __( 'Paragraph %1$s of %2$s', 'voxnemesis-read' ),
-				'unsupported' => __( 'Your browser cannot run this. It needs WebAssembly, and WebAssembly SIMD.', 'voxnemesis-read' ),
-				'failed'      => __( 'That did not work.', 'voxnemesis-read' ),
+				'listen'      => __( 'Listen to this post', 'voxnemasis-read' ),
+				'stop'        => __( 'Stop', 'voxnemasis-read' ),
+				'loading'     => __( 'Fetching the voice model. About 64 MB, once. Your browser keeps it afterwards.', 'voxnemasis-read' ),
+				'downloading' => __( 'Fetching the model', 'voxnemasis-read' ),
+				'ready'       => __( 'Ready to read.', 'voxnemasis-read' ),
+				'playing'     => __( 'Reading', 'voxnemasis-read' ),
+				'paused'      => __( 'Paused', 'voxnemasis-read' ),
+				'finished'    => __( 'Finished.', 'voxnemasis-read' ),
+				'paragraph'   => __( 'Paragraph %1$s of %2$s', 'voxnemasis-read' ),
+				'unsupported' => __( 'Your browser cannot run this. It needs WebAssembly, and WebAssembly SIMD.', 'voxnemasis-read' ),
+				'failed'      => __( 'That did not work.', 'voxnemasis-read' ),
 			),
 		);
 	}
@@ -661,7 +661,7 @@ final class voxnemesis_read {
 		}
 
 		wp_print_inline_script_tag(
-			'window.voxnemesisRead = ' . wp_json_encode( $this->script_config() ) . ';',
+			'window.voxnemasisRead = ' . wp_json_encode( $this->script_config() ) . ';',
 			array( 'id' => 'vnra-reader-config' )
 		);
 	}

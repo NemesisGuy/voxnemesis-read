@@ -6,7 +6,7 @@
  * nothing else. The model is downloaded by the reader, into the reader's own browser, and
  * the browser's cache is not this plugin's to clear.
  *
- * @package voxnemesis_read
+ * @package voxnemasis_read
  */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {

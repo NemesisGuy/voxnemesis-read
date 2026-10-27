@@ -1,5 +1,5 @@
 /**
- * VoxNemesis Read.
+ * VoxNemasis Read.
  *
  * The speech is generated in the reader's browser: the Phonon model runs in a WebAssembly
  * worker and the audio is played straight into the page. Nothing is sent to this site, and
@@ -9,7 +9,7 @@
 
 import { PhononTTS } from '../vendor/phonon-tts/index.js';
 
-const config = window.voxnemesisRead || {};
+const config = window.voxnemasisRead || {};
 
 function text(key, fallback) {
     return (config.strings && config.strings[key]) || fallback;
