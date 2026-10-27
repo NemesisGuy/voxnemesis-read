@@ -2,7 +2,7 @@
 /**
  * The settings, read from the options table.
  *
- * @package voxnemasis_read
+ * @package voxnemesis_read
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * VoxNemasis Read settings.
+ * VoxNemesis Read settings.
  */
-final class voxnemasis_read_Settings {
+final class voxnemesis_read_Settings {
 
 	/**
 	 * The option name.
@@ -35,7 +35,7 @@ final class voxnemasis_read_Settings {
 		return array(
 			'enabled'           => true,
 			'post_types'        => array( 'post' ),
-			'model'             => voxnemasis_read::DEFAULT_MODEL,
+			'model'             => voxnemesis_read::DEFAULT_MODEL,
 			'voice'             => 'default',
 			'speed'             => 1.0,
 			'lang'              => 'en',
@@ -226,9 +226,9 @@ final class voxnemasis_read_Settings {
 	 */
 	public function styles() {
 		return array(
-			'auto'  => __( 'Follow the theme', 'voxnemasis-read' ),
-			'light' => __( 'Always light', 'voxnemasis-read' ),
-			'dark'  => __( 'Always dark', 'voxnemasis-read' ),
+			'auto'  => __( 'Follow the theme', 'voxnemesis-read' ),
+			'light' => __( 'Always light', 'voxnemesis-read' ),
+			'dark'  => __( 'Always dark', 'voxnemesis-read' ),
 		);
 	}
 
@@ -287,7 +287,7 @@ final class voxnemasis_read_Settings {
 	}
 
 	/**
-	 * Whether the opt-in "Powered by VoxNemasis Read" credit is shown.
+	 * Whether the opt-in "Powered by VoxNemesis Read" credit is shown.
 	 *
 	 * Off by default, per the WordPress.org plugin guidelines.
 	 *
@@ -304,10 +304,10 @@ final class voxnemasis_read_Settings {
 	 */
 	public function positions() {
 		return array(
-			'before_content' => __( 'At the top of the post, under the title', 'voxnemasis-read' ),
-			'after_content'  => __( 'At the end of the post', 'voxnemasis-read' ),
-			'floating'       => __( 'A floating button, bottom right', 'voxnemasis-read' ),
-			'shortcode'      => __( 'Only where I put the shortcode', 'voxnemasis-read' ),
+			'before_content' => __( 'At the top of the post, under the title', 'voxnemesis-read' ),
+			'after_content'  => __( 'At the end of the post', 'voxnemesis-read' ),
+			'floating'       => __( 'A floating button, bottom right', 'voxnemesis-read' ),
+			'shortcode'      => __( 'Only where I put the shortcode', 'voxnemesis-read' ),
 		);
 	}
 

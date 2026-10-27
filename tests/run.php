@@ -8,7 +8,7 @@
  * their text, that the markup is well formed, that the settings survive a round trip
  * through the sanitiser, and that the wasm endpoint is wired to the right files.
  *
- * @package voxnemasis_read
+ * @package voxnemesis_read
  */
 
 // phpcs:disable
@@ -39,10 +39,10 @@ function check( $condition, $what ) {
 $root = dirname( __DIR__ );
 
 echo "Plugin boot\n";
-require_once $root . '/voxnemasis-read.php';
+require_once $root . '/voxnemesis-read.php';
 
-$plugin = voxnemasis_read();
-check( $plugin instanceof voxnemasis_read, 'the plugin instantiates' );
+$plugin = voxnemesis_read();
+check( $plugin instanceof voxnemesis_read, 'the plugin instantiates' );
 check( isset( $GLOBALS['vnra_hooks']['actions']['admin_init'] ), 'the settings register on admin_init' );
 check(
 	! isset( $GLOBALS['vnra_hooks']['actions']['init'] ),
@@ -109,7 +109,7 @@ check( '#ff0000' === $clean['accent'], 'a hex colour is lowercased' );
 check( '#00c2a8' === $clean['accent_2'], 'anything that is not a hex colour falls back' );
 
 check( 'auto' === $plugin->sanitize_options( array( 'style' => 'purple' ) )['style'], 'an unknown mode falls back to auto' );
-check( '' === voxnemasis_read_Settings::sanitize_colour( 'red; } body { display:none' ), 'a stylesheet injection is not a colour' );
+check( '' === voxnemesis_read_Settings::sanitize_colour( 'red; } body { display:none' ), 'a stylesheet injection is not a colour' );
 
 $GLOBALS['vnra_options']['vnra_options'] = array( 'accent' => '#123456' );
 $plugin->settings->flush();
@@ -194,16 +194,16 @@ check( false !== strpos( $rendered, 'data-vnra-player' ), 'a post type that is t
 $GLOBALS['vnra_post_type'] = 'post';
 
 echo "\nThe shortcode\n";
-check( isset( $GLOBALS['vnra_hooks']['shortcodes']['voxnemasis_read'] ), 'the shortcode is registered' );
+check( isset( $GLOBALS['vnra_hooks']['shortcodes']['voxnemesis_read'] ), 'the shortcode is registered' );
 
 with_settings( array( 'position' => 'shortcode' ) );
-$from_shortcode = do_shortcode_tag( 'voxnemasis_read' );
+$from_shortcode = do_shortcode_tag( 'voxnemesis_read' );
 check( false !== strpos( $from_shortcode, 'data-vnra-player' ), 'the shortcode renders a player' );
 check( false !== strpos( $from_shortcode, 'vnra__panel' ), 'the shortcode renders the panel' );
 
 $plugin->player->reset();
 $GLOBALS['vnra_is_singular'] = false;
-check( '' === do_shortcode_tag( 'voxnemasis_read' ) || true, 'the shortcode is reachable' );
+check( '' === do_shortcode_tag( 'voxnemesis_read' ) || true, 'the shortcode is reachable' );
 $GLOBALS['vnra_is_singular'] = true;
 
 echo "\nThe pinned colour mode\n";
@@ -232,7 +232,7 @@ echo "\nThe script tag\n";
 // WordPress hands this filter the translations and any inline script concatenated with the
 // tag. Returning a fresh string threw them away, and with them the config the module needs.
 $prepended = "<script id=\"vnra-reader-js-extra\">\nvar legacy = 1;\n</script>\n";
-$src       = 'https://example.test/wp-content/plugins/voxnemasis-read/assets/js/reader.js?ver=0.1.2';
+$src       = 'https://example.test/wp-content/plugins/voxnemesis-read/assets/js/reader.js?ver=0.1.2';
 $tag       = $prepended . '<script src="' . $src . '" id="vnra-reader-js"></script>' . "\n";
 
 $filtered = $plugin->module_script_tag( $tag, 'vnra-reader', $src );
@@ -255,13 +255,13 @@ echo "\nThe config output\n";
 ob_start();
 $plugin->print_config();
 $printed = ob_get_clean();
-check( false === strpos( $printed, 'voxnemasisRead' ), 'nothing is printed when the script is not enqueued' );
+check( false === strpos( $printed, 'voxnemesisRead' ), 'nothing is printed when the script is not enqueued' );
 
 $GLOBALS['vnra_enqueued']['vnra-reader'] = true;
 ob_start();
 $plugin->print_config();
 $printed = ob_get_clean();
-check( false !== strpos( $printed, 'window.voxnemasisRead' ), 'the config is printed once the script is enqueued' );
+check( false !== strpos( $printed, 'window.voxnemesisRead' ), 'the config is printed once the script is enqueued' );
 check( false !== strpos( $printed, 'vnra_wasm=relaxed' ), 'the config carries the wasm url' );
 check( false !== strpos( $printed, 'phonon-31m-en' ), 'the config carries the model' );
 check( false !== strpos( $printed, 'workerUrl' ), 'the config carries the worker' );

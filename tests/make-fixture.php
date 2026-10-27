@@ -8,7 +8,7 @@
  * plugin's assets, so the reader is exercised against the real markup rather than a copy of
  * it that can drift.
  *
- * @package voxnemasis_read
+ * @package voxnemesis_read
  */
 
 // phpcs:disable
@@ -16,9 +16,9 @@
 require_once __DIR__ . '/wp-stubs.php';
 
 $root = dirname( __DIR__ );
-require_once $root . '/voxnemasis-read.php';
+require_once $root . '/voxnemesis-read.php';
 
-$plugin = voxnemasis_read();
+$plugin = voxnemesis_read();
 
 $content = <<<HTML
 <h1>A post about something</h1>
@@ -46,7 +46,7 @@ $html = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n
 	. "<title>Reader test</title>\n"
 	. "<link rel=\"stylesheet\" href=\"/plugin/assets/css/reader.css\">\n"
 	. ( '' !== $inline ? "<style>" . $inline . "</style>\n" : '' )
-	. "<script>window.voxnemasisRead = " . wp_json_encode( $config ) . ";</script>\n"
+	. "<script>window.voxnemesisRead = " . wp_json_encode( $config ) . ";</script>\n"
 	. "</head>\n<body>\n"
 	. "<main>\n" . $rendered . "\n</main>\n"
 	. "<script type=\"module\" src=\"/plugin/assets/js/reader.js\"></script>\n"

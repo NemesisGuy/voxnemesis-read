@@ -1,5 +1,5 @@
-=== VoxNemasis Read ===
-Contributors: nemasisnet
+=== VoxNemesis Read ===
+Contributors: nemesisnet
 Tags: text to speech, tts, read aloud, accessibility, phonon
 Requires at least: 6.3
 Tested up to: 7.1
@@ -12,7 +12,7 @@ Let readers hear your posts. The speech is generated in their own browser, so th
 
 == Description ==
 
-VoxNemasis Read puts a listen button on your posts and pages. When a reader presses it, the speech is generated in **their own browser**, by the Gradium Phonon model running in WebAssembly.
+VoxNemesis Read puts a listen button on your posts and pages. When a reader presses it, the speech is generated in **their own browser**, by the Gradium Phonon model running in WebAssembly.
 
 That means:
 
@@ -35,7 +35,7 @@ Every one of those controls can be switched off on the settings screen, down to 
 = What you get =
 
 * Settings under Settings, Read: enable it, choose which post types get a player, where the button goes, the default voice and speed, and which controls the reader sees.
-* Four placements: at the top of the post, at the end, a floating button in the corner, or only where you put the `[voxnemasis_read]` shortcode.
+* Four placements: at the top of the post, at the end, a floating button in the corner, or only where you put the `[voxnemesis_read]` shortcode.
 * The default model is the public Phonon 31m checkpoint, which speaks English.
 * For another language, host the checkpoint yourself and point the plugin at it. The files are static. Your rack serves them; the reader's browser does the work.
 * Nothing is stored about the reader. No accounts, no cookies, no analytics.
@@ -82,11 +82,11 @@ The multilingual checkpoints are CC BY-NC 4.0, so they are for non-commercial us
 
 = Where does the button go, and why is it not where I expected? =
 
-You have four choices. Two of them place the player in the content, which is where a theme usually renders the post body: "at the top of the post" puts it before the content and "at the end" puts it after. If your theme renders the content somewhere unusual, or you want the button further down an article, choose "only where I put the shortcode" and place `[voxnemasis_read]` yourself.
+You have four choices. Two of them place the player in the content, which is where a theme usually renders the post body: "at the top of the post" puts it before the content and "at the end" puts it after. If your theme renders the content somewhere unusual, or you want the button further down an article, choose "only where I put the shortcode" and place `[voxnemesis_read]` yourself.
 
 = Does it work with my theme? =
 
-The player is appended to the post content and is styled with plain CSS, using the NemasisNet brand tokens. It inherits your fonts and colours. If it needs to fit in better, the CSS is one file, `assets/css/reader.css`.
+The player is appended to the post content and is styled with plain CSS, using the NemesisNet brand tokens. It inherits your fonts and colours. If it needs to fit in better, the CSS is one file, `assets/css/reader.css`.
 
 = Can a reader start from the middle of a post? =
 
@@ -111,7 +111,7 @@ The button is a real button, the player is labelled, the progress is announced t
 * Added: previous and next paragraph, a paragraph slider, and volume.
 * Added: the play button becomes a pause button, with the matching icon.
 * Added: post type selection.
-* Added: "at the top of the post" and "only where I put the shortcode" placements, and the `[voxnemasis_read]` shortcode.
+* Added: "at the top of the post" and "only where I put the shortcode" placements, and the `[voxnemesis_read]` shortcode.
 * Added: per-control toggles on the settings screen.
 * Changed: the reader takes the paragraphs from the page rather than a JSON copy in the markup, so the spoken text and the visible text cannot drift apart.
 
@@ -123,9 +123,9 @@ The button is a real button, the player is labelled, the progress is announced t
 
 == Links ==
 
-* NemasisNet: https://nemasisnet.co.za
-* Brand guide: https://brand.nemasisnet.co.za
-* GitHub: https://github.com/NemasisGuy/voxnemasis-read
+* NemesisNet: https://nemesisnet.co.za
+* Brand guide: https://brand.nemesisnet.co.za
+* GitHub: https://github.com/NemesisGuy/voxnemesis-read
 
 == Upgrade Notice ==
 

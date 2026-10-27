@@ -5,7 +5,7 @@
  * It stubs the functions the plugin calls, records the hooks that were registered, and
  * lets the harness render the player and inspect the result.
  *
- * @package voxnemasis_read
+ * @package voxnemesis_read
  */
 
 // phpcs:disable
